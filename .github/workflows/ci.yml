@@ -23,6 +23,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Add Docker to PATH
+        shell: powershell
+        run: |
+          $env:PATH = "C:\Program Files\Docker\Docker\resources\bin;$env:PATH"
+          echo "PATH=$env:PATH" >> $env:GITHUB_ENV
+
       - name: Set lowercase image name
         shell: powershell
         run: |
@@ -65,6 +71,12 @@ jobs:
     if: github.ref == 'refs/heads/master'
 
     steps:
+      - name: Add Docker to PATH
+        shell: powershell
+        run: |
+          $env:PATH = "C:\Program Files\Docker\Docker\resources\bin;$env:PATH"
+          echo "PATH=$env:PATH" >> $env:GITHUB_ENV
+
       - name: Set lowercase image name
         shell: powershell
         run: |
