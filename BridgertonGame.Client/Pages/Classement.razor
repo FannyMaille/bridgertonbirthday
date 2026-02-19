@@ -43,33 +43,35 @@
             </div>
         </div>
 
-        <div class="points-table" style="overflow-x: auto; margin-bottom: 40px;">
-            <table style="width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, 0.7); border-radius: 8px; overflow: hidden;">
-                <thead>
-                    <tr style="background: rgba(113, 114, 197, 0.2);">
-                        <th style="padding: 15px; text-align: left; font-family: 'Libre Baskerville', serif;">Jeu</th>
-                        @foreach (var family in families)
-                        {
-                            <th style="padding: 15px; text-align: center; font-family: 'Libre Baskerville', serif;">@family.Name</th>
-                        }
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var gameScore in gameScores)
-                    {
-                        <tr class="@GetRowClass(gameScore.GameName)" style="@(gameScore.GameName == "Total" ? "background: rgba(113, 114, 197, 0.1); font-weight: bold;" : "")">
-                            <td class="game-name" style="padding: 12px 15px; font-family: 'Times New Roman', serif;">@gameScore.GameName</td>
+        <div class="modern-points-table">
+            <div class="table-scroll-container">
+                <table class="points-table-modern">
+                    <thead>
+                        <tr>
+                            <th class="game-column">Jeu</th>
                             @foreach (var family in families)
                             {
-                                var score = gameScore.FamilyScores.ContainsKey(family.Id) ? gameScore.FamilyScores[family.Id] : 0;
-                                <td class="score @(score < 0 ? "negative" : "")" style="padding: 12px 15px; text-align: center; font-family: 'Times New Roman', serif; @(score < 0 ? "color: #d32f2f;" : "")">
-                                    @FormatScore(score)
-                                </td>
+                                <th class="family-column">@family.Name</th>
                             }
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var gameScore in gameScores)
+                        {
+                            <tr class="@(gameScore.GameName == "Total" ? "total-row" : gameScore.GameName == "Whistledown" ? "whistledown-row" : "")">
+                                <td class="game-name-cell">@gameScore.GameName</td>
+                                @foreach (var family in families)
+                                {
+                                    var score = gameScore.FamilyScores.ContainsKey(family.Id) ? gameScore.FamilyScores[family.Id] : 0;
+                                    <td class="score-cell @(score < 0 ? "negative-score" : score > 0 ? "positive-score" : "")">
+                                        <span class="score-value">@FormatScore(score)</span>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="section-divider">
