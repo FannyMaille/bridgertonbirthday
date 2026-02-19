@@ -97,8 +97,6 @@ jobs:
             -p 9080:9080 \
             -p 9081:9081 \
             -e ASPNETCORE_ENVIRONMENT=Production \
-            -e API_BASE_URL=${{ secrets.API_BASE_URL }} \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
 
       - name: Verify deployment
         run: |
