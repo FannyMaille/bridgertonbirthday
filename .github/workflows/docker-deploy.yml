@@ -2,15 +2,15 @@ name: Build, Push and Deploy Docker Container
 
 on:
   push:
-    branches: [ "master", "main" ]
+    branches: [ master ]
   pull_request:
-    branches: [ "master", "main" ]
+    branches: [ master ]
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  CONTAINER_NAME: bridgerton-game
+  CONTAINER_NAME: bridgertongame
 
 jobs:
   build-and-push:
@@ -24,10 +24,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set lowercase image name
-        shell: pwsh
-        run: |
-          $imageName = "${{ env.IMAGE_NAME }}".ToLower()
-          echo "IMAGE_NAME_LOWER=$imageName" >> $env:GITHUB_ENV
+        id: image
+        run: echo "IMAGE_NAME_LOWER=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -51,7 +49,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./BridgertonGame.Server/Dockerfile
+          file: ./Server/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -62,14 +60,12 @@ jobs:
     permissions:
       contents: read
       packages: read
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
 
     steps:
       - name: Set lowercase image name
-        shell: pwsh
-        run: |
-          $imageName = "${{ env.IMAGE_NAME }}".ToLower()
-          echo "IMAGE_NAME_LOWER=$imageName" >> $env:GITHUB_ENV
+        id: image
+        run: echo "IMAGE_NAME_LOWER=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -79,46 +75,50 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Stop and remove existing container
-        shell: pwsh
         run: |
-          docker stop ${{ env.CONTAINER_NAME }} 2>$null
-          docker rm ${{ env.CONTAINER_NAME }} 2>$null
+          docker stop ${{ env.CONTAINER_NAME }} 2>/dev/null || true
+          docker rm ${{ env.CONTAINER_NAME }} 2>/dev/null || true
 
       - name: Pull latest image
-        shell: pwsh
         run: |
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
 
       - name: Remove dangling images (cleanup)
-        shell: pwsh
         run: |
           docker image prune -f
-          Write-Host "✓ Old images cleaned up"
+          echo "? Old images cleaned up"
 
       - name: Run new container
-        shell: pwsh
         run: |
-          docker run -d `
-            --name ${{ env.CONTAINER_NAME }} `
-            --restart unless-stopped `
-            -p 9080:9080 `
-            -p 9081:9081 `
-            -e ASPNETCORE_ENVIRONMENT=Production `
-            -e ASPNETCORE_URLS=http://+:9080 `
+          docker run -d \
+            --name ${{ env.CONTAINER_NAME }} \
+            --user 1000:1000 \
+            --restart unless-stopped \
+            -p 8080:8080 \
+            -p 8081:8081 \
+            --volume imageVolume:/Images_ReveEnSacADos \
+            -e ASPNETCORE_ENVIRONMENT=Production \
+            -e DB_HOST=${{ secrets.DB_HOST }} \
+            -e DB_PORT=${{ secrets.DB_PORT }} \
+            -e DB_NAME=${{ secrets.DB_NAME }} \
+            -e DB_USER=${{ secrets.DB_USER }} \
+            -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -e API_BASE_URL=${{ secrets.API_BASE_URL }} \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
 
-      - name: Verify deployment
-        shell: pwsh
+      - name: Run new container
         run: |
-          Start-Sleep -Seconds 5
-          docker ps --filter "name=${{ env.CONTAINER_NAME }}"
-          Write-Host "✓ Container deployed successfully!"
+          docker network connect db-network reveensacados 
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          docker ps | grep ${{ env.CONTAINER_NAME }}
+          echo "? Container deployed successfully!"
 
       - name: Show container logs
-        shell: pwsh
         run: |
           docker logs ${{ env.CONTAINER_NAME }} --tail 50
-
   cleanup-registry:
     needs: deploy
     runs-on: self-hosted
@@ -126,11 +126,11 @@ jobs:
       packages: write
 
     steps:
-      - name: Delete old container images
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: 'gamebridgerton'
-          package-type: 'container'
-          min-versions-to-keep: 5
-          delete-only-untagged-versions: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Delete old container images
+      uses: actions/delete-package-versions@v5
+      with:
+        package-name: 'gamebridgerton'
+        package-type: 'container'
+        min-versions-to-keep: 5
+        delete-only-untagged-versions: false
+        token: ${{ secrets.GITHUB_TOKEN }}
