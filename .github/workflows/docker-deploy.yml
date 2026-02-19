@@ -1,0 +1,136 @@
+name: Build, Push and Deploy Docker Container
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  CONTAINER_NAME: bridgerton-game
+
+jobs:
+  build-and-push:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set lowercase image name
+        shell: pwsh
+        run: |
+          $imageName = "${{ env.IMAGE_NAME }}".ToLower()
+          echo "IMAGE_NAME_LOWER=$imageName" >> $env:GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./BridgertonGame.Server/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: read
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Set lowercase image name
+        shell: pwsh
+        run: |
+          $imageName = "${{ env.IMAGE_NAME }}".ToLower()
+          echo "IMAGE_NAME_LOWER=$imageName" >> $env:GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Stop and remove existing container
+        shell: pwsh
+        run: |
+          docker stop ${{ env.CONTAINER_NAME }} 2>$null
+          docker rm ${{ env.CONTAINER_NAME }} 2>$null
+
+      - name: Pull latest image
+        shell: pwsh
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
+
+      - name: Remove dangling images (cleanup)
+        shell: pwsh
+        run: |
+          docker image prune -f
+          Write-Host "✓ Old images cleaned up"
+
+      - name: Run new container
+        shell: pwsh
+        run: |
+          docker run -d `
+            --name ${{ env.CONTAINER_NAME }} `
+            --restart unless-stopped `
+            -p 9080:9080 `
+            -p 9081:9081 `
+            -e ASPNETCORE_ENVIRONMENT=Production `
+            -e ASPNETCORE_URLS=http://+:9080 `
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
+
+      - name: Verify deployment
+        shell: pwsh
+        run: |
+          Start-Sleep -Seconds 5
+          docker ps --filter "name=${{ env.CONTAINER_NAME }}"
+          Write-Host "✓ Container deployed successfully!"
+
+      - name: Show container logs
+        shell: pwsh
+        run: |
+          docker logs ${{ env.CONTAINER_NAME }} --tail 50
+
+  cleanup-registry:
+    needs: deploy
+    runs-on: self-hosted
+    permissions:
+      packages: write
+
+    steps:
+      - name: Delete old container images
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'gamebridgerton'
+          package-type: 'container'
+          min-versions-to-keep: 5
+          delete-only-untagged-versions: false
+          token: ${{ secrets.GITHUB_TOKEN }}
