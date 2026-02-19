@@ -32,22 +32,22 @@ public class GameDataService
     {
         return new List<Player>
         {
-            new() { Id = "h1", Code = "CELIA2024", Name = "Célia Hastings", Title = "DUCHESSE", ImageUrl = "images/AdminAvatar.png", Role = "Lady Whistledown", FamilyId = "hastings", IsLadyWhistledown = true },
-            new() { Id = "h2", Code = "FANNY2024", Name = "Fanny Hastings", Title = "DUCHESSE", ImageUrl = "images/AdminAvatar.png", Role = "Invitée", FamilyId = "hastings", IsLadyWhistledown = false },
-            new() { Id = "h3", Code = "HUGO2024", Name = "Hugo Hastings", Title = "DUC", ImageUrl = "images/AdminAvatar.png", Role = "Invité", FamilyId = "hastings", IsLadyWhistledown = false },
+            new() { Id = "h1", Code = "CELIA2024", Name = "Célia Hastings", Title = "DUCHESSE", ImageUrl = "images/characters/celia-hastings.png", Role = "Lady Whistledown", FamilyId = "hastings", IsLadyWhistledown = true },
+            new() { Id = "h2", Code = "FANNY2024", Name = "Fanny Hastings", Title = "DUCHESSE", ImageUrl = "images/characters/fanny-hastings.png", Role = "Invitée", FamilyId = "hastings", IsLadyWhistledown = false },
+            new() { Id = "h3", Code = "HUGO2024", Name = "Hugo Hastings", Title = "DUC", ImageUrl = "images/characters/hugo-hastings.png", Role = "Invité", FamilyId = "hastings", IsLadyWhistledown = false },
             
-            new() { Id = "b1", Code = "DAPHNE2024", Name = "Daphné Bridgerton", Title = "DUCHESSE", ImageUrl = "images/AdminAvatar.png", Role = "Lady Whistledown", FamilyId = "bridgerton", IsLadyWhistledown = true },
-            new() { Id = "b2", Code = "SIMON2024", Name = "Simon Bridgerton", Title = "DUC", ImageUrl = "images/AdminAvatar.png", Role = "Invité", FamilyId = "bridgerton", IsLadyWhistledown = false },
-            new() { Id = "b3", Code = "ELOISE2024", Name = "Eloïse Bridgerton", Title = "LADY", ImageUrl = "images/AdminAvatar.png", Role = "Invitée", FamilyId = "bridgerton", IsLadyWhistledown = false },
+            new() { Id = "b1", Code = "DAPHNE2024", Name = "Daphné Bridgerton", Title = "DUCHESSE", ImageUrl = "images/characters/daphne-bridgerton.png", Role = "Lady Whistledown", FamilyId = "bridgerton", IsLadyWhistledown = true },
+            new() { Id = "b2", Code = "SIMON2024", Name = "Simon Bridgerton", Title = "DUC", ImageUrl = "images/characters/simon-bridgerton.png", Role = "Invité", FamilyId = "bridgerton", IsLadyWhistledown = false },
+            new() { Id = "b3", Code = "ELOISE2024", Name = "Eloïse Bridgerton", Title = "LADY", ImageUrl = "images/characters/eloise-bridgerton.png", Role = "Invitée", FamilyId = "bridgerton", IsLadyWhistledown = false },
             
-            new() { Id = "f1", Code = "PENELOPE2024", Name = "Penelope Featherington", Title = "LADY", ImageUrl = "images/AdminAvatar.png", Role = "Lady Whistledown", FamilyId = "featherington", IsLadyWhistledown = true },
-            new() { Id = "f2", Code = "PORTIA2024", Name = "Portia Featherington", Title = "LADY", ImageUrl = "images/AdminAvatar.png", Role = "Invitée", FamilyId = "featherington", IsLadyWhistledown = false },
+            new() { Id = "f1", Code = "PENELOPE2024", Name = "Penelope Featherington", Title = "LADY", ImageUrl = "images/characters/penelope-featherington.png", Role = "Lady Whistledown", FamilyId = "featherington", IsLadyWhistledown = true },
+            new() { Id = "f2", Code = "PORTIA2024", Name = "Portia Featherington", Title = "LADY", ImageUrl = "images/characters/portia-featherington.png", Role = "Invitée", FamilyId = "featherington", IsLadyWhistledown = false },
             
-            new() { Id = "d1", Code = "AGATHA2024", Name = "Agatha Danbury", Title = "LADY", ImageUrl = "images/AdminAvatar.png", Role = "Maîtresse de soirée", FamilyId = "danbury", IsLadyWhistledown = false },
-            new() { Id = "d2", Code = "WILL2024", Name = "Will Danbury", Title = "LORD", ImageUrl = "images/AdminAvatar.png", Role = "Invité", FamilyId = "danbury", IsLadyWhistledown = false },
+            new() { Id = "d1", Code = "AGATHA2024", Name = "Agatha Danbury", Title = "LADY", ImageUrl = "images/characters/agatha-danbury.png", Role = "Maîtresse de soirée", FamilyId = "danbury", IsLadyWhistledown = false },
+            new() { Id = "d2", Code = "WILL2024", Name = "Will Danbury", Title = "LORD", ImageUrl = "images/characters/will-danbury.png", Role = "Invité", FamilyId = "danbury", IsLadyWhistledown = false },
             
-            new() { Id = "s1", Code = "KATE2024", Name = "Kate Sharma", Title = "LADY", ImageUrl = "images/AdminAvatar.png", Role = "Lady Whistledown", FamilyId = "sharma", IsLadyWhistledown = true },
-            new() { Id = "s2", Code = "EDWINA2024", Name = "Edwina Sharma", Title = "LADY", ImageUrl = "images/AdminAvatar.png", Role = "Invitée", FamilyId = "sharma", IsLadyWhistledown = false }
+            new() { Id = "s1", Code = "KATE2024", Name = "Kate Sharma", Title = "LADY", ImageUrl = "images/characters/kate-sharma.png", Role = "Lady Whistledown", FamilyId = "sharma", IsLadyWhistledown = true },
+            new() { Id = "s2", Code = "EDWINA2024", Name = "Edwina Sharma", Title = "LADY", ImageUrl = "images/characters/edwina-sharma.png", Role = "Invitée", FamilyId = "sharma", IsLadyWhistledown = false }
         };
     }
 

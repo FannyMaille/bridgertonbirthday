@@ -9,6 +9,9 @@
 html, body {
     font-family: 'Times New Roman', Times, serif;
     background-color: #E1DCEF;
+    background-image: url('../images/Tapisserie.png');
+    background-repeat: repeat;
+    background-size: auto;
     color: #7172C5;
     min-height: 100vh;
     line-height: 1.6;
@@ -201,7 +204,7 @@ a, .btn-link {
     }
 
     .hero-section .main-title {
-        font-size: 6rem;
+        font-size: 4rem;
     }
 }
 
