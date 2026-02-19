@@ -17,11 +17,9 @@ jobs:
     - name: Test runner
       run: echo "Runner OK - bridgerton-runner is working!"
       
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-        
+    - name: Verify .NET version
+      run: dotnet --version
+      
     - name: Restore dependencies
       run: dotnet restore
       
