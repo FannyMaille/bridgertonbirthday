@@ -51,11 +51,13 @@ a, .btn-link {
 .site-header {
     position: relative;
     width: 100%;
+    margin-bottom: -100px;
+    z-index: 1;
 }
 
 .header-flowers {
     width: 100%;
-    overflow: hidden;
+    overflow: visible;
     line-height: 0;
 }
 
@@ -63,8 +65,7 @@ a, .btn-link {
     width: 100%;
     height: auto;
     display: block;
-    max-height: 180px;
-    object-fit: cover;
+    object-fit: contain;
     object-position: top;
 }
 
@@ -72,6 +73,7 @@ a, .btn-link {
     position: absolute;
     top: 20px;
     left: 20px;
+    z-index: 10;
 }
 
 .logo-link {
@@ -100,6 +102,107 @@ a, .btn-link {
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
+}
+
+/* Hero Section - Mobile First */
+.hero-section {
+    position: relative;
+    width: 100%;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    margin-bottom: 30px;
+}
+
+.hero-content {
+    text-align: center;
+    z-index: 3;
+    position: relative;
+    padding: 20px 15px;
+}
+
+.hero-section .title-the {
+    font-family: 'Times New Roman', serif;
+    font-size: 1rem;
+    color: #7172C5;
+    letter-spacing: 3px;
+    display: block;
+    margin-bottom: -5px;
+    text-shadow: 
+        1px 1px 3px rgba(255, 255, 255, 0.9),
+        -1px -1px 3px rgba(255, 255, 255, 0.9),
+        1px -1px 3px rgba(255, 255, 255, 0.9),
+        -1px 1px 3px rgba(255, 255, 255, 0.9),
+        0 0 10px rgba(255, 255, 255, 1),
+        0 0 15px rgba(255, 255, 255, 0.8);
+}
+
+.hero-section .main-title {
+    font-family: 'Libre Baskerville', 'Times New Roman', serif;
+    font-size: 2.5rem;
+    color: #7172C5;
+    font-style: italic;
+    font-weight: normal;
+    line-height: 1.1;
+    margin: 0;
+    text-shadow: 
+        2px 2px 4px rgba(255, 255, 255, 0.95),
+        -2px -2px 4px rgba(255, 255, 255, 0.95),
+        2px -2px 4px rgba(255, 255, 255, 0.95),
+        -2px 2px 4px rgba(255, 255, 255, 0.95),
+        0 0 15px rgba(255, 255, 255, 1),
+        0 0 25px rgba(255, 255, 255, 0.9);
+}
+
+/* Tablet */
+@media (min-width: 768px) {
+    .site-header {
+        margin-bottom: -130px;
+    }
+
+    .hero-section {
+        min-height: 220px;
+    }
+
+    .hero-content {
+        padding: 30px 20px;
+    }
+
+    .hero-section .title-the {
+        font-size: 1.3rem;
+        letter-spacing: 4px;
+    }
+
+    .hero-section .main-title {
+        font-size: 3.5rem;
+    }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+    .site-header {
+        margin-bottom: -150px;
+    }
+
+    .hero-section {
+        min-height: 250px;
+    }
+
+    .hero-content {
+        padding: 40px 20px;
+    }
+
+    .hero-section .title-the {
+        font-size: 1.8rem;
+        letter-spacing: 6px;
+        margin-bottom: -10px;
+    }
+
+    .hero-section .main-title {
+        font-size: 6rem;
+    }
 }
 
 .title-section {
@@ -515,4 +618,3 @@ code {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
-   

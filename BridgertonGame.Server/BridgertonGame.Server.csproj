@@ -17,12 +17,4 @@
     <ProjectReference Include="..\BridgertonGame.Client\BridgertonGame.Client.csproj" />
   </ItemGroup>
 
-  <!-- Attempt to stop any running instance of the server before building to avoid locked output files -->
-  <Target Name="StopRunningServer" BeforeTargets="BeforeBuild">
-    <!-- Try to stop by process name (BridgertonGame.Server) -->
-    <Exec Command="powershell -NoProfile -Command &quot;try { Get-Process -Name 'BridgertonGame.Server' -ErrorAction SilentlyContinue | ForEach-Object { $_ | Stop-Process -Force } } catch { }&quot;" ContinueOnError="true" />
-    <!-- Fallback: try to stop any process whose name contains 'BridgertonGame.Server' (safer) -->
-    <Exec Command="powershell -NoProfile -Command &quot;try { Get-Process | Where-Object { $_.ProcessName -like '*BridgertonGame.Server*' } | ForEach-Object { $_ | Stop-Process -Force } } catch { }&quot;" ContinueOnError="true" />
-  </Target>
-
 </Project>

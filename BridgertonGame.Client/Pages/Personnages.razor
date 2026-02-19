@@ -7,12 +7,9 @@
 
 <Header />
 
-<main class="main-content">
-    <div class="page-title">
-        <span class="title-the">THE</span>
-        <h1>Personnages</h1>
-    </div>
+<Hero TitlePrefix="THE" Title="Personnages" BackgroundImage="images/hero-personnages.jpg" />
 
+<main class="main-content">
     @if (families == null || players == null)
     {
         <p>Chargement...</p>

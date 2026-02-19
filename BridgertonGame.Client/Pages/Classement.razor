@@ -1,4 +1,5 @@
 @page "/classement"
+@using BridgertonGame.Client.Shared
 @using BridgertonGame.Shared.Models
 @inject ApiService ApiService
 
@@ -6,12 +7,9 @@
 
 <Header />
 
-<main class="main-content">
-    <div class="page-title">
-        <span class="title-the">THE</span>
-        <h1>Classement</h1>
-    </div>
+<Hero TitlePrefix="THE" Title="Classement" BackgroundImage="images/hero-classement.jpg" />
 
+<main class="main-content">
     @if (families == null || gameScores == null)
     {
         <p>Chargement...</p>

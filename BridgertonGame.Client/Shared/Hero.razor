@@ -1,0 +1,22 @@
+@* Hero component with title overlay positioned over the header flowers *@
+
+<div class="hero-section">
+    <div class="hero-content">
+        @if (!string.IsNullOrEmpty(TitlePrefix))
+        {
+            <span class="title-the">@TitlePrefix</span>
+        }
+        <h1 class="main-title">@((MarkupString)Title)</h1>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string BackgroundImage { get; set; } = "images/hero-bg.jpg";
+
+    [Parameter]
+    public string? TitlePrefix { get; set; }
+
+    [Parameter]
+    public string Title { get; set; } = "";
+}

@@ -1,6 +1,6 @@
 @page "/mon-espace"
-@using BridgertonGame.Shared.Models
 @using BridgertonGame.Client.Shared
+@using BridgertonGame.Shared.Models
 @using BridgertonGame.Shared.DTOs
 @using System.Net.Http.Json
 @inject ApiService ApiService
@@ -12,12 +12,9 @@
 
 <Header />
 
-<main class="main-content">
-    <div class="page-title">
-        <span class="title-mon">MON</span>
-        <h1>Espace</h1>
-    </div>
+<Hero TitlePrefix="MON" Title="Espace" BackgroundImage="images/hero-monespace.jpg" />
 
+<main class="main-content">
     @if (currentPlayer == null)
     {
         <div class="login-section" style="max-width: 500px; margin: 50px auto; text-align: center;">
@@ -73,7 +70,7 @@
                         </div>
                         <div style="text-align: center;">
                             <div style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px;">POINTS</div>
-                            <div style="font-family: 'Libre Baskerville', serif; font-size: 2.5rem; font-weight: bold, color: #7172C5;">@currentFamily.Points</div>
+                            <div style="font-family: 'Libre Baskerville', serif; font-size: 2.5rem; font-weight: bold; color: #7172C5;">@currentFamily.Points</div>
                         </div>
                     </div>
                 </div>
@@ -111,7 +108,7 @@
                                 <option value="@member.Id">@member.Name</option>
                             }
                         </select>
-                        <button class="confirm-btn" style="width: 100%;" disabled="@string.IsNullOrEmpty(selectedMemberId)" @onclick="ConfirmVote">
+                        <button class="confirm-btn" style="width: 100%;" disabled="@(string.IsNullOrEmpty(selectedMemberId))" @onclick="ConfirmVote">
                             <span class="btn-text">Confirmer mon vote</span>
                         </button>
                     </div>
