@@ -2,15 +2,13 @@ name: Build, Push and Deploy Docker Container
 
 on:
   push:
-    branches: [ "master"]
-  pull_request:
-    branches: [ "master"]
+    branches: [ master ]
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  CONTAINER_NAME: bridgerton-game
+  CONTAINER_NAME: reveensacados
 
 jobs:
   build-and-push:
@@ -41,9 +39,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}
           tags: |
             type=ref,event=branch
-            type=ref,event=pr
             type=sha,prefix=sha-
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -60,7 +57,6 @@ jobs:
     permissions:
       contents: read
       packages: read
-    if: github.ref == 'refs/heads/master'
 
     steps:
       - name: Set lowercase image name
@@ -94,11 +90,21 @@ jobs:
             --name ${{ env.CONTAINER_NAME }} \
             --user 1000:1000 \
             --restart unless-stopped \
-            -p 9080:9080 \
-            -p 9081:9081 \
+            -p 8080:8080 \
+            -p 8081:8081 \
+            --volume imageVolume:/Images_ReveEnSacADos \
             -e ASPNETCORE_ENVIRONMENT=Production \
-            -e ASPNETCORE_URLS=http://+:9080 \
+            -e DB_HOST=${{ secrets.DB_HOST }} \
+            -e DB_PORT=${{ secrets.DB_PORT }} \
+            -e DB_NAME=${{ secrets.DB_NAME }} \
+            -e DB_USER=${{ secrets.DB_USER }} \
+            -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -e API_BASE_URL=${{ secrets.API_BASE_URL }} \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
+
+      - name: Connect container to database network
+        run: |
+          docker network connect db-network ${{ env.CONTAINER_NAME }} 2>/dev/null || true
 
       - name: Verify deployment
         run: |
