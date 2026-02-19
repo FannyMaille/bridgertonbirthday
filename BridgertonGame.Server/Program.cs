@@ -13,7 +13,7 @@ builder.Services.AddSingleton<GameDataService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient",
-        policy => policy.WithOrigins("https://localhost:7113", "http://localhost:5257")
+        policy => policy.WithOrigins("https://localhost:7113", "http://localhost:5257", "https://localhost:5001", "http://localhost:5000")
                         .AllowAnyMethod()
                         .AllowAnyHeader());
 });
@@ -23,17 +23,24 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseWebAssemblyDebugging();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
+
 app.UseCors("AllowBlazorClient");
+
+app.UseRouting();
 
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapFallbackToFile("index.html");
 
 app.Run();
 
