@@ -2,15 +2,15 @@ name: Build, Push and Deploy Docker Container
 
 on:
   push:
-    branches: [ "master", "main" ]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "master", "main" ]
+    branches: [ "master" ]
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  CONTAINER_NAME: bridgerton-game
+  CONTAINER_NAME: bridgertongame
 
 jobs:
   build-and-push:
@@ -120,7 +120,7 @@ jobs:
       - name: Delete old container images
         uses: actions/delete-package-versions@v5
         with:
-          package-name: 'gamebridgerton'
+          package-name: 'bridgertongame'
           package-type: 'container'
           min-versions-to-keep: 5
           delete-only-untagged-versions: false
