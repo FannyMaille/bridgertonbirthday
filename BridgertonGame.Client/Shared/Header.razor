@@ -3,13 +3,43 @@
         <img src="images/FleursBG.png" alt="Fleurs" />
     </div>
     <div class="header-content">
-        <a href="/" class="logo-link">
+        <button @onclick="ToggleMenu" class="logo-link burger-button" aria-label="Menu">
             <div class="logo-silhouette">
                 <img src="images/LadyWithldown.png" alt="Lady Whistledown" />
             </div>
-        </a>
+        </button>
     </div>
+    
+    @if (isMenuOpen)
+    {
+        <div class="burger-menu-overlay" @onclick="CloseMenu"></div>
+        <nav class="burger-menu @(isMenuOpen ? "open" : "")">
+            <div class="menu-header">
+                <div class="menu-silhouette">
+                    <img src="images/LadyWithldown.png" alt="Lady Whistledown" />
+                </div>
+                <button @onclick="CloseMenu" class="close-menu" aria-label="Fermer le menu">×</button>
+            </div>
+            <ul class="menu-list">
+                <li><a href="/" @onclick="CloseMenu">Accueil</a></li>
+                <li><a href="/classement" @onclick="CloseMenu">Classement</a></li>
+                <li><a href="/personnages" @onclick="CloseMenu">Personnages</a></li>
+                <li><a href="/mon-espace" @onclick="CloseMenu">Mon Espace</a></li>
+            </ul>
+        </nav>
+    }
 </header>
 
 @code {
+    private bool isMenuOpen = false;
+
+    private void ToggleMenu()
+    {
+        isMenuOpen = !isMenuOpen;
+    }
+
+    private void CloseMenu()
+    {
+        isMenuOpen = false;
+    }
 }
