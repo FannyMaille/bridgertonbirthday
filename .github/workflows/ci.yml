@@ -1,30 +1,125 @@
-name: Bridgerton Game CI
+name: Build, Push and Deploy Docker Container
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ master ]
   pull_request:
-    branches: [ master, main ]
+    branches: [ master ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  CONTAINER_NAME: gamebridgerton
 
 jobs:
-  build:
+  build-and-push:
     runs-on: self-hosted
-    
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      
-    - name: Test runner
-      run: echo "Runner OK - bridgerton-runner is working!"
-      
-    - name: Verify .NET version
-      run: dotnet --version
-      
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Build
-      run: dotnet build --no-restore --configuration Release
-      
-    - name: Test
-      run: dotnet test --no-build --configuration Release --verbosity normal
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set lowercase image name
+        id: image
+        run: echo "IMAGE_NAME_LOWER=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./BridgertonGame.Server/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: read
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Set lowercase image name
+        id: image
+        run: echo "IMAGE_NAME_LOWER=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Stop and remove existing container
+        run: |
+          docker stop ${{ env.CONTAINER_NAME }} 2>/dev/null || true
+          docker rm ${{ env.CONTAINER_NAME }} 2>/dev/null || true
+
+      - name: Pull latest image
+        run: |
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
+
+      - name: Remove dangling images (cleanup)
+        run: |
+          docker image prune -f
+          echo "✓ Old images cleaned up"
+
+      - name: Run new container
+        run: |
+          docker run -d \
+            --name ${{ env.CONTAINER_NAME }} \
+            --restart unless-stopped \
+            -p 9080:9080 \
+            -p 9081:9081 \
+            -e ASPNETCORE_ENVIRONMENT=Production \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          docker ps | grep ${{ env.CONTAINER_NAME }}
+          echo "✓ Container deployed successfully!"
+
+      - name: Show container logs
+        run: |
+          docker logs ${{ env.CONTAINER_NAME }} --tail 50
+
+  cleanup-registry:
+    needs: deploy
+    runs-on: self-hosted
+    permissions:
+      packages: write
+
+    steps:
+    - name: Delete old container images
+      uses: actions/delete-package-versions@v5
+      with:
+        package-name: 'gamebridgerton'
+        package-type: 'container'
+        min-versions-to-keep: 5
+        delete-only-untagged-versions: false
+        token: ${{ secrets.GITHUB_TOKEN }}
