@@ -2,15 +2,15 @@ name: Build, Push and Deploy Docker Container
 
 on:
   push:
-    branches: [ master ]
+    branches: [ "master", "main" ]
   pull_request:
-    branches: [ master ]
+    branches: [ "master", "main" ]
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  CONTAINER_NAME: gamebridgerton
+  CONTAINER_NAME: bridgerton-game
 
 jobs:
   build-and-push:
@@ -23,17 +23,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Add Docker to PATH
-        shell: powershell
-        run: |
-          $env:PATH = "C:\Program Files\Docker\Docker\resources\bin;$env:PATH"
-          echo "PATH=$env:PATH" >> $env:GITHUB_ENV
-
       - name: Set lowercase image name
-        shell: powershell
-        run: |
-          $imageName = "${{ env.IMAGE_NAME }}".ToLower()
-          echo "IMAGE_NAME_LOWER=$imageName" >> $env:GITHUB_ENV
+        id: image
+        run: echo "IMAGE_NAME_LOWER=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -68,20 +60,12 @@ jobs:
     permissions:
       contents: read
       packages: read
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
 
     steps:
-      - name: Add Docker to PATH
-        shell: powershell
-        run: |
-          $env:PATH = "C:\Program Files\Docker\Docker\resources\bin;$env:PATH"
-          echo "PATH=$env:PATH" >> $env:GITHUB_ENV
-
       - name: Set lowercase image name
-        shell: powershell
-        run: |
-          $imageName = "${{ env.IMAGE_NAME }}".ToLower()
-          echo "IMAGE_NAME_LOWER=$imageName" >> $env:GITHUB_ENV
+        id: image
+        run: echo "IMAGE_NAME_LOWER=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -91,44 +75,38 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Stop and remove existing container
-        shell: powershell
         run: |
-          docker stop ${{ env.CONTAINER_NAME }} 2>$null
-          if ($LASTEXITCODE -ne 0) { $LASTEXITCODE = 0 }
-          docker rm ${{ env.CONTAINER_NAME }} 2>$null
-          if ($LASTEXITCODE -ne 0) { $LASTEXITCODE = 0 }
+          docker stop ${{ env.CONTAINER_NAME }} 2>/dev/null || true
+          docker rm ${{ env.CONTAINER_NAME }} 2>/dev/null || true
 
       - name: Pull latest image
-        shell: powershell
         run: |
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
 
       - name: Remove dangling images (cleanup)
-        shell: powershell
         run: |
           docker image prune -f
-          Write-Host "✓ Old images cleaned up"
+          echo "✓ Old images cleaned up"
 
       - name: Run new container
-        shell: powershell
         run: |
-          docker run -d `
-            --name ${{ env.CONTAINER_NAME }} `
-            --restart unless-stopped `
-            -p 9080:9080 `
-            -p 9081:9081 `
-            -e ASPNETCORE_ENVIRONMENT=Production `
+          docker run -d \
+            --name ${{ env.CONTAINER_NAME }} \
+            --user 1000:1000 \
+            --restart unless-stopped \
+            -p 9080:9080 \
+            -p 9081:9081 \
+            -e ASPNETCORE_ENVIRONMENT=Production \
+            -e ASPNETCORE_URLS=http://+:9080 \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
 
       - name: Verify deployment
-        shell: powershell
         run: |
-          Start-Sleep -Seconds 5
-          docker ps | Select-String ${{ env.CONTAINER_NAME }}
-          Write-Host "✓ Container deployed successfully!"
+          sleep 5
+          docker ps | grep ${{ env.CONTAINER_NAME }}
+          echo "✓ Container deployed successfully!"
 
       - name: Show container logs
-        shell: powershell
         run: |
           docker logs ${{ env.CONTAINER_NAME }} --tail 50
 
@@ -139,11 +117,11 @@ jobs:
       packages: write
 
     steps:
-    - name: Delete old container images
-      uses: actions/delete-package-versions@v5
-      with:
-        package-name: 'gamebridgerton'
-        package-type: 'container'
-        min-versions-to-keep: 5
-        delete-only-untagged-versions: false
-        token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete old container images
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'gamebridgerton'
+          package-type: 'container'
+          min-versions-to-keep: 5
+          delete-only-untagged-versions: false
+          token: ${{ secrets.GITHUB_TOKEN }}
