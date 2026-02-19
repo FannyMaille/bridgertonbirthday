@@ -1,0 +1,156 @@
+@page "/classement"
+@using BridgertonGame.Shared.Models
+@inject ApiService ApiService
+
+<PageTitle>Classement - The Bridgerton Game</PageTitle>
+
+<Header />
+
+<main class="main-content">
+    <div class="page-title">
+        <span class="title-the">THE</span>
+        <h1>Classement</h1>
+    </div>
+
+    @if (families == null || gameScores == null)
+    {
+        <p>Chargement...</p>
+    }
+    else
+    {
+        <div class="ranking-section" style="margin-bottom: 40px;">
+            <div class="ranking-list" style="max-width: 600px; margin: 0 auto;">
+                @foreach (var family in families.OrderBy(f => f.Rank))
+                {
+                    <div class="ranking-item @(family.Rank == 1 ? "first" : "")" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: rgba(255, 255, 255, 0.7); border-radius: 8px; margin-bottom: 10px; position: relative;">
+                        @if (family.Rank == 1)
+                        {
+                            <img src="images/Crown.png" alt="Crown" class="crown-icon" style="position: absolute; left: -20px; top: -10px; width: 50px; height: 50px;" />
+                        }
+                        <span class="rank-number" style="font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-weight: bold;">@GetRankText(family.Rank)</span>
+                        <span class="family-name" style="font-family: 'Libre Baskerville', serif; font-size: 1.2rem; flex: 1; text-align: center;">Famille @family.Name</span>
+                        <span class="family-points" style="font-family: 'Times New Roman', serif; font-size: 1.2rem; font-weight: bold;">@family.Points pts</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="section-divider">
+            <div class="flower-line">
+                <img src="images/Fleurs.png" alt="" />
+            </div>
+            <h3>Tableau des<br/>Points</h3>
+            <div class="flower-line">
+                <img src="images/Fleurs.png" alt="" />
+            </div>
+        </div>
+
+        <div class="points-table" style="overflow-x: auto; margin-bottom: 40px;">
+            <table style="width: 100%; border-collapse: collapse; background: rgba(255, 255, 255, 0.7); border-radius: 8px; overflow: hidden;">
+                <thead>
+                    <tr style="background: rgba(113, 114, 197, 0.2);">
+                        <th style="padding: 15px; text-align: left; font-family: 'Libre Baskerville', serif;">Jeu</th>
+                        @foreach (var family in families)
+                        {
+                            <th style="padding: 15px; text-align: center; font-family: 'Libre Baskerville', serif;">@family.Name</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var gameScore in gameScores)
+                    {
+                        <tr class="@GetRowClass(gameScore.GameName)" style="@(gameScore.GameName == "Total" ? "background: rgba(113, 114, 197, 0.1); font-weight: bold;" : "")">
+                            <td class="game-name" style="padding: 12px 15px; font-family: 'Times New Roman', serif;">@gameScore.GameName</td>
+                            @foreach (var family in families)
+                            {
+                                var score = gameScore.FamilyScores.ContainsKey(family.Id) ? gameScore.FamilyScores[family.Id] : 0;
+                                <td class="score @(score < 0 ? "negative" : "")" style="padding: 12px 15px; text-align: center; font-family: 'Times New Roman', serif; @(score < 0 ? "color: #d32f2f;" : "")">
+                                    @FormatScore(score)
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section-divider">
+            <div class="flower-line">
+                <img src="images/Fleurs.png" alt="" />
+            </div>
+            <h3>Lady<br/>Whistledown</h3>
+            <div class="flower-line">
+                <img src="images/Fleurs.png" alt="" />
+            </div>
+        </div>
+
+        <div class="reveal-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 30px;">
+            @foreach (var family in families)
+            {
+                var ladyWhistledown = family.LadyWhistledownId != null ? players?.FirstOrDefault(p => p.Id == family.LadyWhistledownId) : null;
+                
+                <div class="reveal-card" style="text-align: center;">
+                    <div class="reveal-frame">
+                        <div class="ornament-frame" style="margin: 0 auto;">
+                            <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
+                            <div class="silhouette-container">
+                                @if (family.Revealed && ladyWhistledown != null)
+                                {
+                                    <img src="@ladyWhistledown.ImageUrl" alt="@ladyWhistledown.Name" class="revealed-image" />
+                                }
+                                else
+                                {
+                                    <img src="images/LadyWithldown.png" alt="Mystery" class="mystery-silhouette" />
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="reveal-info" style="margin-top: 15px;">
+                        <span class="reveal-label" style="display: block; font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px;">FAMILLE</span>
+                        @if (family.Revealed && ladyWhistledown != null)
+                        {
+                            <span class="reveal-name" style="display: block; font-family: 'Libre Baskerville', serif; font-size: 1.2rem; font-style: italic; margin: 5px 0;">@ladyWhistledown.Name</span>
+                        }
+                        else
+                        {
+                            <span class="reveal-mystery" style="display: block; font-family: 'Libre Baskerville', serif; font-size: 1.2rem; font-style: italic; margin: 5px 0;">??? @family.Name</span>
+                        }
+                        <span class="reveal-points" style="display: block; font-family: 'Times New Roman', serif; font-size: 0.9rem;">xx pts</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</main>
+
+@code {
+    private List<Family>? families;
+    private List<GameScore>? gameScores;
+    private List<Player>? players;
+
+    protected override async Task OnInitializedAsync()
+    {
+        families = await ApiService.GetAllFamiliesAsync();
+        gameScores = await ApiService.GetAllGameScoresAsync();
+        players = await ApiService.GetAllPlayersAsync();
+    }
+
+    private string GetRankText(int rank) => rank switch
+    {
+        1 => "1er",
+        2 => "2eme",
+        3 => "3eme",
+        4 => "4eme",
+        5 => "5eme",
+        _ => $"{rank}eme"
+    };
+
+    private string GetRowClass(string gameName) => gameName switch
+    {
+        "Total" => "total-row",
+        "Whistledown" => "whistledown-row",
+        _ => ""
+    };
+
+    private string FormatScore(int score) => score == 0 ? "-" : $"{score}pts";
+}

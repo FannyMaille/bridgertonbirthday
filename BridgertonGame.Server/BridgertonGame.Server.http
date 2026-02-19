@@ -1,0 +1,6 @@
+@BridgertonGame.Server_HostAddress = http://localhost:5062
+
+GET {{BridgertonGame.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

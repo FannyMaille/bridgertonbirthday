@@ -1,0 +1,85 @@
+@page "/personnages"
+@using BridgertonGame.Shared.Models
+@inject ApiService ApiService
+
+<PageTitle>Personnages - The Bridgerton Game</PageTitle>
+
+<Header />
+
+<main class="main-content">
+    <div class="page-title">
+        <span class="title-the">THE</span>
+        <h1>Personnages</h1>
+    </div>
+
+    @if (families == null || players == null)
+    {
+        <p>Chargement...</p>
+    }
+    else
+    {
+        @if (hostPlayer != null)
+        {
+            <div class="host-section" style="text-align: center; margin-bottom: 50px;">
+                <div class="ornament-frame" style="margin: 0 auto;">
+                    <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
+                    <div class="host-image-container">
+                        <img src="@hostPlayer.ImageUrl" alt="@hostPlayer.Name" class="host-image" />
+                    </div>
+                </div>
+                <div class="host-info" style="margin-top: 15px;">
+                    <div class="host-title" style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 5px;">@hostPlayer.Title</div>
+                    <div class="host-name" style="font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-style: italic; color: #7172C5;">@hostPlayer.Name</div>
+                </div>
+            </div>
+        }
+
+        <div class="families-container">
+            @foreach (var family in families)
+            {
+                var familyMembers = players.Where(p => p.FamilyId == family.Id && p.Id != hostPlayer?.Id).ToList();
+                
+                <div class="family-section" style="margin-bottom: 50px;">
+                    <div class="family-divider section-divider">
+                        <div class="flower-line">
+                            <img src="images/Fleurs.png" alt="" />
+                        </div>
+                        <h3 class="family-name-title">Famille @family.Name</h3>
+                        <div class="flower-line">
+                            <img src="images/Fleurs.png" alt="" />
+                        </div>
+                    </div>
+
+                    <div class="family-members-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; margin-top: 30px;">
+                        @foreach (var member in familyMembers)
+                        {
+                            <div class="character-card" style="text-align: center;">
+                                <div class="ornament-frame character-frame" style="margin: 0 auto;">
+                                    <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
+                                    <div class="character-image-container">
+                                        <img src="@member.ImageUrl" alt="@member.Name" class="character-image" />
+                                    </div>
+                                </div>
+                                <div class="character-title" style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px; margin-top: 15px; margin-bottom: 5px;">@member.Title</div>
+                                <div class="character-name" style="font-family: 'Libre Baskerville', serif; font-size: 1.2rem; font-style: italic; color: #7172C5;">@member.Name</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</main>
+
+@code {
+    private List<Family>? families;
+    private List<Player>? players;
+    private Player? hostPlayer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        families = await ApiService.GetAllFamiliesAsync();
+        players = await ApiService.GetAllPlayersAsync();
+        hostPlayer = players?.FirstOrDefault(p => p.Role == "Maîtresse de soirée");
+    }
+}

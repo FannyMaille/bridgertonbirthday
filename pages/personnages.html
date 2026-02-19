@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personnages - The Bridgerton Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/personnages.css">
+    <link rel="icon" type="image/png" href="../images/LadyWithldown.png">
+</head>
+<body>
+    <!-- Header with Flowers -->
+    <header class="site-header">
+        <div class="header-flowers">
+            <img src="../images/Fleurs.png" alt="Fleurs" />
+        </div>
+        <div class="header-content">
+            <a href="../index.html" class="logo-link">
+                <div class="logo-silhouette">
+                    <img src="../images/LadyWithldown.png" alt="Lady Whistledown" />
+                </div>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="personnages-page">
+            <!-- Page Title -->
+            <div class="page-title">
+                <span class="title-the">THE</span>
+                <h1>Personnages</h1>
+            </div>
+
+            <!-- Host Section -->
+            <div class="host-section" id="host-section" style="display: none;">
+                <div class="host-card">
+                    <div class="ornament-frame host-frame">
+                        <img src="../images/OrnementCadre.png" alt="" class="ornament-border" />
+                        <div class="host-image-container">
+                            <img src="" alt="" class="host-image" id="host-image" />
+                        </div>
+                    </div>
+                    <div class="host-info">
+                        <div class="host-title" id="host-title"></div>
+                        <h2 class="host-name" id="host-name"></h2>
+                        <div class="host-role">HÔTE DU BAL</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Families Sections -->
+            <div id="families-container">
+                <!-- Families will be loaded by JavaScript -->
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/data.js"></script>
+    <script src="../js/personnages.js"></script>
+</body>
+</html>

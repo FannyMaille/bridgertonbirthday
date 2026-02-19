@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Espace - The Bridgerton Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/mon-espace.css">
+    <link rel="icon" type="image/png" href="../images/LadyWithldown.png">
+</head>
+<body>
+    <!-- Header with Flowers -->
+    <header class="site-header">
+        <div class="header-flowers">
+            <img src="../images/Fleurs.png" alt="Fleurs" />
+        </div>
+        <div class="header-content">
+            <a href="../index.html" class="logo-link">
+                <div class="logo-silhouette">
+                    <img src="../images/LadyWithldown.png" alt="Lady Whistledown" />
+                </div>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div id="login-section" class="login-section">
+            <div class="page-title">
+                <span class="title-mon">MON</span>
+                <h1>Espace</h1>
+            </div>
+
+            <div class="login-container">
+                <div class="login-frame">
+                    <div class="ornament-frame">
+                        <img src="../images/OrnementCadre.png" alt="" class="ornament-border" />
+                        <div class="silhouette-container">
+                            <img src="../images/LadyWithldown.png" alt="Lady Whistledown" class="silhouette" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="login-form">
+                    <label class="code-label">Entrez votre code:</label>
+                    <input type="text" 
+                           class="code-input" 
+                           id="player-code"
+                           placeholder=""
+                           maxlength="20" />
+                    <p class="error-message" id="error-message"></p>
+                    <button class="validate-btn" onclick="validateCode()">
+                        <span class="btn-text">Valider</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="profile-section" class="profile-section" style="display: none;">
+            <div class="page-title">
+                <span class="title-mon">MON</span>
+                <h1>Espace</h1>
+            </div>
+
+            <!-- Player Profile Card -->
+            <div class="profile-card">
+                <div class="profile-info">
+                    <div class="title-label" id="player-title"></div>
+                    <h2 class="player-name" id="player-name"></h2>
+                </div>
+
+                <div class="ornament-frame profile-frame">
+                    <img src="../images/OrnementCadre.png" alt="" class="ornament-border" />
+                    <div class="player-image-container">
+                        <img src="" alt="" class="player-image" id="player-image" />
+                    </div>
+                </div>
+
+                <div class="role-section">
+                    <div class="role-label">ROLE</div>
+                    <div class="role-display">
+                        <span class="role-text" id="role-text">*******</span>
+                        <button class="eye-btn" onclick="toggleRoleVisibility()">
+                            <span id="eye-icon">👁️</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Family Info Section -->
+            <div class="family-info-section" id="family-info-section">
+                <p class="family-subtitle" id="family-subtitle"></p>
+                
+                <div class="stats-container">
+                    <div class="stat-box">
+                        <span class="stat-value" id="family-rank"></span>
+                        <span class="stat-total">/5</span>
+                    </div>
+                    <div class="stat-box points">
+                        <span class="stat-value" id="family-points"></span>
+                        <span class="stat-label">points</span>
+                    </div>
+                </div>
+
+                <a href="classement.html" class="details-btn">
+                    <span class="btn-text">Détails du classement</span>
+                </a>
+            </div>
+
+            <!-- Family Members Section -->
+            <div class="family-members-section" id="family-members-section">
+                <div class="section-divider">
+                    <div class="flower-line">
+                        <img src="../images/Fleurs.png" alt="" />
+                    </div>
+                    <h3 id="members-title">Les Membres de<br/>Ma Famille</h3>
+                    <div class="flower-line">
+                        <img src="../images/Fleurs.png" alt="" />
+                    </div>
+                </div>
+
+                <div class="members-grid" id="members-grid">
+                    <!-- Members will be loaded by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Voting Section -->
+            <div class="voting-section" id="voting-section" style="display: none;">
+                <div class="section-divider">
+                    <div class="flower-line">
+                        <img src="../images/Fleurs.png" alt="" />
+                    </div>
+                    <h3>Vote Pour<br/>Lady Whistledown</h3>
+                    <div class="flower-line">
+                        <img src="../images/Fleurs.png" alt="" />
+                    </div>
+                </div>
+
+                <div class="voting-container">
+                    <div class="voting-form">
+                        <p class="voting-text">Je choisi de voter :</p>
+                        <select class="member-select" id="member-select">
+                            <option value="">Selectionne un nom</option>
+                        </select>
+                        <p class="voting-subtext">en tant que Lady Whistledown de ma famille.</p>
+                        <button class="confirm-btn" onclick="confirmVote()" id="confirm-vote-btn" disabled>
+                            <span class="btn-text">Confirmer mon vote</span>
+                        </button>
+                    </div>
+
+                    <div class="voting-silhouette">
+                        <div class="ornament-frame">
+                            <img src="../images/OrnementCadre.png" alt="" class="ornament-border" />
+                            <div class="silhouette-container">
+                                <img src="../images/LadyWithldown.png" alt="Lady Whistledown" class="silhouette" />
+                            </div>
+                        </div>
+                        <div class="points-display">xx pts</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Publication Section (Lady Whistledown only) -->
+            <div class="publication-section" id="publication-section" style="display: none;">
+                <div class="section-divider">
+                    <div class="flower-line">
+                        <img src="../images/Fleurs.png" alt="" />
+                    </div>
+                    <h3>Espace Secret de<br/>Lady Whistledown</h3>
+                    <div class="flower-line">
+                        <img src="../images/Fleurs.png" alt="" />
+                    </div>
+                </div>
+
+                <div class="editor-card">
+                    <div class="editor-border">
+                        <p class="editor-greeting">Chers amis lecteurs,</p>
+                        <textarea class="article-editor" 
+                                  id="article-content"
+                                  placeholder="Écrivez votre chronique mondaine ici..."
+                                  maxlength="300"
+                                  rows="4"></textarea>
+                        <div class="editor-footer">
+                            <span class="char-count" id="char-count">0/300 charactères</span>
+                            <div class="editor-signature">
+                                <span class="signature">Lady Whistledown</span>
+                                <span class="family-name" id="editor-family-name">Famille<br/></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="cooldown-message" id="cooldown-message" style="display: none;"></p>
+
+                <button class="publish-btn" id="publish-btn" onclick="publishArticle()" disabled>
+                    <span class="btn-text">Publier mon Article</span>
+                </button>
+            </div>
+
+            <button class="logout-btn" onclick="logout()">
+                <span class="btn-text">Se déconnecter</span>
+            </button>
+        </div>
+    </main>
+
+    <script src="../js/data.js"></script>
+    <script src="../js/mon-espace.js"></script>
+</body>
+</html>

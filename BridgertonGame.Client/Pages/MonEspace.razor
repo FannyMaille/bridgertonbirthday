@@ -1,0 +1,347 @@
+@page "/mon-espace"
+@using BridgertonGame.Shared.Models
+@using BridgertonGame.Shared.DTOs
+@using System.Net.Http.Json
+@inject ApiService ApiService
+@inject AuthService AuthService
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Mon Espace - The Bridgerton Game</PageTitle>
+
+<Header />
+
+<main class="main-content">
+    <div class="page-title">
+        <span class="title-mon">MON</span>
+        <h1>Espace</h1>
+    </div>
+
+    @if (currentPlayer == null)
+    {
+        <div class="login-section" style="max-width: 500px; margin: 50px auto; text-align: center;">
+            <div class="ornament-frame" style="margin: 0 auto 30px;">
+                <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
+                <div class="silhouette-container">
+                    <img src="images/LadyWithldown.png" alt="Silhouette" class="silhouette" />
+                </div>
+            </div>
+
+            <div class="login-form" style="background: rgba(255, 255, 255, 0.7); padding: 30px; border-radius: 8px;">
+                <label class="code-label" style="display: block; margin-bottom: 20px;">Entre ton code personnel :</label>
+                <input type="text" class="code-input" style="width: 100%; margin-bottom: 10px;" @bind="playerCode" @onkeypress="HandleKeyPress" placeholder="CODE" />
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <p class="error-message" style="margin: 10px 0;">@errorMessage</p>
+                }
+                <button class="validate-btn" style="margin-top: 20px;" @onclick="ValidateCode">
+                    <span class="btn-text">Valider</span>
+                </button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="profile-section">
+            <div class="player-info" style="text-align: center; margin-bottom: 40px;">
+                <div class="ornament-frame" style="margin: 0 auto;">
+                    <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
+                    <div class="player-image-container">
+                        <img src="@currentPlayer.ImageUrl" alt="@currentPlayer.Name" class="player-image" />
+                    </div>
+                </div>
+                <div style="margin-top: 20px;">
+                    <div style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px;">@currentPlayer.Title</div>
+                    <div style="font-family: 'Libre Baskerville', serif; font-size: 1.8rem; font-style: italic; color: #7172C5; margin: 10px 0;">@currentPlayer.Name</div>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px;">
+                        <span style="font-family: 'Times New Roman', serif;">Rôle:</span>
+                        <span style="font-family: 'Libre Baskerville', serif; font-style: italic;">@(showRole ? currentPlayer.Role : "*******")</span>
+                        <button @onclick="ToggleRoleVisibility" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">@(showRole ? "🙈" : "👁️")</button>
+                    </div>
+                </div>
+            </div>
+
+            @if (currentFamily != null)
+            {
+                <div class="family-stats" style="max-width: 600px; margin: 40px auto; background: rgba(255, 255, 255, 0.7); padding: 30px; border-radius: 8px;">
+                    <h3 style="font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-style: italic; text-align: center; margin-bottom: 20px;">Les points et le classement de ma Famille @currentFamily.Name</h3>
+                    <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+                        <div style="text-align: center;">
+                            <div style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px;">CLASSEMENT</div>
+                            <div style="font-family: 'Libre Baskerville', serif; font-size: 2.5rem; font-weight: bold; color: #7172C5;">@currentFamily.Rank°</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px;">POINTS</div>
+                            <div style="font-family: 'Libre Baskerville', serif; font-size: 2.5rem; font-weight: bold, color: #7172C5;">@currentFamily.Points</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-divider">
+                    <div class="flower-line"><img src="images/Fleurs.png" alt="" /></div>
+                    <h3>Les Membres de<br/>Ma Famille @currentFamily.Name</h3>
+                    <div class="flower-line"><img src="images/Fleurs.png" alt="" /></div>
+                </div>
+
+                <div class="members-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; margin: 30px 0 50px;">
+                    @foreach (var member in familyMembers)
+                    {
+                        <div class="member-card" style="text-align: center;">
+                            <div class="ornament-frame member-frame" style="margin: 0 auto;">
+                                <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
+                                <div class="member-image-container">
+                                    <img src="@member.ImageUrl" alt="@member.Name" class="member-image" />
+                                </div>
+                            </div>
+                            <div class="member-title" style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px; margin-top: 15px;">@member.Title</div>
+                            <div class="member-name" style="font-family: 'Libre Baskerville', serif; font-size: 1.2rem; font-style: italic; color: #7172C5;">@member.Name</div>
+                        </div>
+                    }
+                </div>
+
+                @if (currentFamily.VotingEnabled)
+                {
+                    <div class="voting-section" style="max-width: 600px; margin: 40px auto; background: rgba(255, 255, 255, 0.7); padding: 30px; border-radius: 8px;">
+                        <h3 style="font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-style: italic; text-align: center; margin-bottom: 20px;">Vote pour Lady Whistledown</h3>
+                        <select class="member-select" style="width: 100%; margin-bottom: 20px;" @bind="selectedMemberId">
+                            <option value="">Selectionne un nom</option>
+                            @foreach (var member in familyMembers)
+                            {
+                                <option value="@member.Id">@member.Name</option>
+                            }
+                        </select>
+                        <button class="confirm-btn" style="width: 100%;" disabled="@string.IsNullOrEmpty(selectedMemberId)" @onclick="ConfirmVote">
+                            <span class="btn-text">Confirmer mon vote</span>
+                        </button>
+                    </div>
+                }
+
+                @if (currentPlayer.IsLadyWhistledown)
+                {
+                    <div class="publication-section" style="max-width: 800px; margin: 40px auto; background: rgba(255, 255, 255, 0.7); padding: 30px; border-radius: 8px;">
+                        <h3 style="font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-style: italic; text-align: center; margin-bottom: 20px;">Publier une Chronique</h3>
+                        
+                        <div class="article-editor-container">
+                            <textarea class="article-editor" style="width: 100%; min-height: 150px; resize: vertical; margin-bottom: 10px;" maxlength="300" @bind="articleContent" @oninput="UpdateCharCount" placeholder="Écris ta chronique mondaine..."></textarea>
+                            <div style="text-align: right; font-family: 'Times New Roman', serif; font-size: 0.9rem; margin-bottom: 10px;">@charCount/300 charactères</div>
+                            
+                            @if (timeUntilNext.HasValue && timeUntilNext.Value > TimeSpan.Zero)
+                            {
+                                <p class="cooldown-message" style="text-align: center; color: #d32f2f; margin-bottom: 10px;">
+                                    Prochaine publication possible dans: @FormatTimeRemaining(timeUntilNext.Value)
+                                </p>
+                            }
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-family: 'Times New Roman', serif;">Famille<br/>@currentFamily.Name</span>
+                                <button class="publish-btn" disabled="@(!CanPublish())" @onclick="PublishArticle">
+                                    <span class="btn-text">Publier</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div style="text-align: center; margin: 40px 0;">
+                    <button class="logout-btn" @onclick="Logout">
+                        <span class="btn-text">Déconnexion</span>
+                    </button>
+                </div>
+            }
+        </div>
+    }
+</main>
+
+@code {
+    private Player? currentPlayer;
+    private Family? currentFamily;
+    private List<Player> familyMembers = new();
+    private string playerCode = "";
+    private string errorMessage = "";
+    private bool showRole = false;
+    private string selectedMemberId = "";
+    private string articleContent = "";
+    private int charCount = 0;
+    private TimeSpan? timeUntilNext;
+    private System.Threading.Timer? cooldownTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        currentPlayer = await AuthService.GetCurrentPlayerAsync();
+        if (currentPlayer != null)
+        {
+            await LoadPlayerData();
+        }
+    }
+
+    private async Task LoadPlayerData()
+    {
+        if (currentPlayer == null) return;
+
+        currentFamily = await ApiService.GetFamilyByIdAsync(currentPlayer.FamilyId);
+        familyMembers = await ApiService.GetPlayersByFamilyAsync(currentPlayer.FamilyId);
+        
+        if (currentPlayer.IsLadyWhistledown)
+        {
+            await CheckCooldown();
+        }
+    }
+
+    private async Task ValidateCode()
+    {
+        errorMessage = "";
+        if (string.IsNullOrWhiteSpace(playerCode))
+        {
+            errorMessage = "Veuillez entrer un code";
+            return;
+        }
+
+        var player = await ApiService.GetPlayerByCodeAsync(playerCode);
+        if (player != null)
+        {
+            currentPlayer = player;
+            await AuthService.SetCurrentPlayerAsync(player);
+            await LoadPlayerData();
+        }
+        else
+        {
+            errorMessage = "Code invalide. Veuillez réessayer.";
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await ValidateCode();
+        }
+    }
+
+    private void ToggleRoleVisibility()
+    {
+        showRole = !showRole;
+    }
+
+    private async Task ConfirmVote()
+    {
+        if (string.IsNullOrEmpty(selectedMemberId) || currentFamily == null) return;
+
+        try
+        {
+            var request = new VoteRequest { FamilyId = currentFamily.Id, PlayerId = selectedMemberId };
+            await Http.PostAsJsonAsync($"api/families/{currentFamily.Id}/vote", request);
+            errorMessage = "Votre vote a été enregistré !";
+        }
+        catch
+        {
+            errorMessage = "Erreur lors de l'enregistrement du vote.";
+        }
+    }
+
+    private void UpdateCharCount(ChangeEventArgs e)
+    {
+        articleContent = e.Value?.ToString() ?? "";
+        charCount = articleContent.Length;
+    }
+
+    private bool CanPublish()
+    {
+        return !string.IsNullOrWhiteSpace(articleContent) && 
+               (!timeUntilNext.HasValue || timeUntilNext.Value <= TimeSpan.Zero);
+    }
+
+    private async Task PublishArticle()
+    {
+        if (!CanPublish() || currentFamily == null) return;
+
+        try
+        {
+            var request = new PublishArticleRequest
+            {
+                Title = "Chers amis lecteurs,",
+                Content = articleContent,
+                FamilyId = currentFamily.Id
+            };
+
+            var response = await Http.PostAsJsonAsync("api/articles", request);
+            if (response.IsSuccessStatusCode)
+            {
+                articleContent = "";
+                charCount = 0;
+                await CheckCooldown();
+                errorMessage = "Votre article a été publié !";
+            }
+        }
+        catch
+        {
+            errorMessage = "Erreur lors de la publication.";
+        }
+    }
+
+    private async Task CheckCooldown()
+    {
+        if (currentFamily == null) return;
+
+        try
+        {
+            var response = await Http.GetFromJsonAsync<System.Text.Json.JsonElement>($"api/articles/can-publish/{currentFamily.Id}");
+            var canPublish = response.GetProperty("canPublish").GetBoolean();
+            if (!canPublish && response.TryGetProperty("timeRemaining", out System.Text.Json.JsonElement timeRemainingProp))
+            {
+                var timeRemainingStr = timeRemainingProp.GetString();
+                if (!string.IsNullOrEmpty(timeRemainingStr))
+                {
+                    timeUntilNext = TimeSpan.Parse(timeRemainingStr);
+                    StartCooldownTimer();
+                }
+            }
+            else
+            {
+                timeUntilNext = null;
+            }
+        }
+        catch { }
+    }
+
+    private void StartCooldownTimer()
+    {
+        cooldownTimer?.Dispose();
+        cooldownTimer = new System.Threading.Timer(async _ =>
+        {
+            if (timeUntilNext.HasValue && timeUntilNext.Value > TimeSpan.Zero)
+            {
+                timeUntilNext = timeUntilNext.Value.Subtract(TimeSpan.FromSeconds(1));
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                cooldownTimer?.Dispose();
+                timeUntilNext = null;
+                await InvokeAsync(StateHasChanged);
+            }
+        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+    }
+
+    private string FormatTimeRemaining(TimeSpan time)
+    {
+        return $"{time.Minutes:D2}:{time.Seconds:D2}";
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        currentPlayer = null;
+        currentFamily = null;
+        showRole = false;
+        selectedMemberId = "";
+        articleContent = "";
+        playerCode = "";
+        errorMessage = "";
+        cooldownTimer?.Dispose();
+    }
+
+    public void Dispose()
+    {
+        cooldownTimer?.Dispose();
+    }
+}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classement - The Bridgerton Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/classement.css">
+    <link rel="icon" type="image/png" href="../images/LadyWithldown.png">
+</head>
+<body>
+    <!-- Header with Flowers -->
+    <header class="site-header">
+        <div class="header-flowers">
+            <img src="../images/Fleurs.png" alt="Fleurs" />
+        </div>
+        <div class="header-content">
+            <a href="../index.html" class="logo-link">
+                <div class="logo-silhouette">
+                    <img src="../images/LadyWithldown.png" alt="Lady Whistledown" />
+                </div>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="classement-page">
+            <!-- Page Title -->
+            <div class="page-title">
+                <span class="title-the">THE</span>
+                <h1>Classement</h1>
+            </div>
+
+            <!-- General Ranking -->
+            <div class="ranking-section">
+                <div class="ranking-list" id="ranking-list">
+                    <!-- Ranking will be loaded by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Points Details Section -->
+            <div class="points-section">
+                <div class="section-divider">
+                    <div class="flower-line">
+                        <img src="../images/Fleurs.png" alt="" />
+                    </div>
+                    <h2>Les points</h2>
+                    <div class="flower-line">
+                        <img src="../images/Fleurs.png" alt="" />
+                    </div>
+                </div>
+
+                <div class="points-table-container">
+                    <table class="points-table" id="points-table">
+                        <thead>
+                            <tr id="table-header">
+                                <th>Jeu</th>
+                                <!-- Family headers will be loaded by JavaScript -->
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Scores will be loaded by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Whistledown Reveal Section -->
+            <div class="reveal-section">
+                <div class="section-divider">
+                    <div class="flower-line">
+                        <img src="../images/Fleurs.png" alt="" />
+                    </div>
+                    <div class="reveal-title">
+                        <span class="title-the">THE</span>
+                        <h2>Whistledown<br/>Reveal</h2>
+                    </div>
+                    <div class="flower-line">
+                        <img src="../images/Fleurs.png" alt="" />
+                    </div>
+                </div>
+
+                <div class="reveal-grid" id="reveal-grid">
+                    <!-- Reveal cards will be loaded by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/data.js"></script>
+    <script src="../js/classement.js"></script>
+</body>
+</html>

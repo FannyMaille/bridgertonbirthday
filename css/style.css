@@ -1,0 +1,546 @@
+/* Global Styles for The Bridgerton Game */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    font-family: 'Times New Roman', Times, serif;
+    background-color: #E1DCEF;
+    color: #7172C5;
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* Header */
+.site-header {
+    position: relative;
+    width: 100%;
+}
+
+.header-flowers {
+    width: 100%;
+    overflow: hidden;
+    line-height: 0;
+}
+
+.header-flowers img {
+    width: 100%;
+    height: auto;
+    display: block;
+    max-height: 180px;
+    object-fit: cover;
+    object-position: top;
+}
+
+.header-content {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+}
+
+.logo-link {
+    text-decoration: none;
+}
+
+.logo-silhouette {
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 50%;
+    border: 3px solid #7172C5;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logo-silhouette img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+}
+
+/* Main Content */
+.main-content {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Page */
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block;
+}
+
+/* Title Section */
+.title-section {
+    text-align: center;
+    margin: 20px 0 40px;
+}
+
+.title-the {
+    font-family: 'Times New Roman', serif;
+    font-size: 1.2rem;
+    color: #7172C5;
+    letter-spacing: 4px;
+    display: block;
+    margin-bottom: -10px;
+}
+
+.main-title {
+    font-family: 'Libre Baskerville', 'Times New Roman', serif;
+    font-size: 4rem;
+    color: #7172C5;
+    font-style: italic;
+    font-weight: normal;
+    line-height: 1.1;
+    margin: 0;
+}
+
+/* Tiles Container */
+.tiles-container {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-bottom: 50px;
+}
+
+.nav-tile {
+    text-decoration: none;
+    transition: transform 0.3s ease;
+}
+
+.nav-tile:hover {
+    transform: scale(1.05);
+}
+
+.tile-frame {
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Chronicles Section */
+.chronicles-section {
+    margin-top: 40px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.flower-divider {
+    flex: 1;
+    max-width: 200px;
+    overflow: hidden;
+}
+
+.flower-divider img {
+    width: 100%;
+    height: 60px;
+    object-fit: cover;
+    object-position: center;
+}
+
+.flower-divider.right img {
+    transform: scaleX(-1);
+}
+
+.section-title {
+    text-align: center;
+}
+
+.section-title h2 {
+    font-family: 'Libre Baskerville', 'Times New Roman', serif;
+    font-size: 2.5rem;
+    color: #7172C5;
+    font-style: italic;
+    font-weight: normal;
+    line-height: 1.1;
+    margin: 0;
+}
+
+/* Articles List */
+.articles-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.article-card {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.article-border {
+    border: 2px solid #7172C5;
+    border-style: dashed;
+    padding: 20px;
+    border-radius: 4px;
+}
+
+.article-content {
+    position: relative;
+}
+
+.article-greeting {
+    font-family: 'Times New Roman', serif;
+    font-size: 1rem;
+    color: #333;
+    margin: 0 0 10px 0;
+}
+
+.article-text {
+    font-family: 'Times New Roman', serif;
+    font-size: 1.1rem;
+    color: #333;
+    font-style: italic;
+    margin: 0 0 20px 0;
+    line-height: 1.6;
+}
+
+.article-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 20px;
+}
+
+.signature {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 0.9rem;
+    color: #7172C5;
+    font-style: italic;
+}
+
+.family-name {
+    font-family: 'Times New Roman', serif;
+    font-size: 0.9rem;
+    color: #7172C5;
+    text-align: right;
+    line-height: 1.2;
+}
+
+/* Page Title (for subpages) */
+.page-title {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.page-title .title-mon,
+.page-title .title-the,
+.page-title .title-login {
+    font-family: 'Times New Roman', serif;
+    font-size: 1.2rem;
+    color: #7172C5;
+    letter-spacing: 4px;
+    display: block;
+}
+
+.page-title h1 {
+    font-family: 'Libre Baskerville', 'Times New Roman', serif;
+    font-size: 3rem;
+    color: #7172C5;
+    font-style: italic;
+    font-weight: normal;
+    margin: 0;
+}
+
+/* Ornament Frame */
+.ornament-frame {
+    position: relative;
+    width: 250px;
+    height: 250px;
+}
+
+.ornament-border {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 1;
+}
+
+.silhouette-container,
+.player-image-container,
+.member-image-container,
+.host-image-container,
+.character-image-container,
+.avatar-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    height: 70%;
+    z-index: 2;
+    overflow: hidden;
+    border-radius: 50%;
+}
+
+.silhouette,
+.player-image,
+.member-image,
+.host-image,
+.character-image,
+.admin-avatar,
+.mystery-silhouette,
+.revealed-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Buttons */
+.validate-btn,
+.details-btn,
+.confirm-btn,
+.publish-btn,
+.logout-btn,
+.reveal-btn,
+.reveal-all-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 15px 40px;
+    background-image: url('../images/Button.png');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    min-width: 200px;
+    transition: transform 0.2s ease;
+}
+
+.validate-btn:hover:not(:disabled),
+.details-btn:hover:not(:disabled),
+.confirm-btn:hover:not(:disabled),
+.publish-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+}
+
+.validate-btn:disabled,
+.confirm-btn:disabled,
+.publish-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-text {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.1rem;
+    color: #7172C5;
+    font-style: italic;
+}
+
+/* Form Inputs */
+.code-input,
+.form-input,
+.member-select,
+.article-editor,
+.score-input {
+    padding: 15px 20px;
+    font-size: 1.2rem;
+    border: 2px solid #7172C5;
+    border-radius: 8px;
+    background: white;
+    color: #333;
+    font-family: 'Times New Roman', serif;
+}
+
+.code-input:focus,
+.form-input:focus,
+.member-select:focus,
+.article-editor:focus,
+.score-input:focus {
+    outline: none;
+    border-color: #5a5ab3;
+    box-shadow: 0 0 10px rgba(113, 114, 197, 0.3);
+}
+
+.code-input {
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.form-label,
+.code-label {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.5rem;
+    color: #7172C5;
+    font-style: italic;
+}
+
+.error-message {
+    color: #d32f2f;
+    font-size: 0.9rem;
+    margin: 0;
+    text-align: center;
+}
+
+/* Section Divider */
+.section-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 40px 0;
+}
+
+.flower-line {
+    flex: 1;
+    max-width: 150px;
+    overflow: hidden;
+}
+
+.flower-line img {
+    width: 100%;
+    height: 50px;
+    object-fit: cover;
+    object-position: center;
+}
+
+.section-divider h3 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.5rem;
+    color: #7172C5;
+    font-style: italic;
+    font-weight: normal;
+    text-align: center;
+    margin: 0;
+    line-height: 1.3;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header-flowers img {
+        max-height: 100px;
+    }
+
+    .logo-silhouette {
+        width: 45px;
+        height: 45px;
+    }
+
+    .header-content {
+        top: 10px;
+        left: 10px;
+    }
+
+    .main-content {
+        padding: 10px;
+    }
+
+    .main-title {
+        font-size: 2.5rem;
+    }
+
+    .tile-frame {
+        width: 140px;
+        height: 140px;
+    }
+
+    .section-title h2 {
+        font-size: 1.8rem;
+    }
+
+    .flower-divider {
+        max-width: 80px;
+    }
+
+    .flower-divider img {
+        height: 40px;
+    }
+
+    .tiles-container {
+        gap: 15px;
+    }
+
+    .page-title h1 {
+        font-size: 2rem;
+    }
+
+    .ornament-frame {
+        width: 180px;
+        height: 180px;
+    }
+
+    .section-divider h3 {
+        font-size: 1.2rem;
+    }
+
+    .flower-line {
+        max-width: 80px;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-title {
+        font-size: 2rem;
+    }
+
+    .tile-frame {
+        width: 120px;
+        height: 120px;
+    }
+
+    .section-title h2 {
+        font-size: 1.5rem;
+    }
+
+    .article-border {
+        padding: 15px;
+    }
+
+    .article-text {
+        font-size: 1rem;
+    }
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(113, 114, 197, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(113, 114, 197, 0.5);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(113, 114, 197, 0.7);
+}
+
+/* Selection Styling */
+::selection {
+    background: rgba(113, 114, 197, 0.3);
+    color: #7172C5;
+}

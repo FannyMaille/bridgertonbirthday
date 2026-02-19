@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Bridgerton Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/png" href="images/LadyWithldown.png">
+</head>
+<body>
+    <!-- Header with Flowers -->
+    <header class="site-header">
+        <div class="header-flowers">
+            <img src="images/Fleurs.png" alt="Fleurs" />
+        </div>
+        <div class="header-content">
+            <a href="index.html" class="logo-link">
+                <div class="logo-silhouette">
+                    <img src="images/LadyWithldown.png" alt="Lady Whistledown" />
+                </div>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Home Page -->
+        <div id="home-page" class="page active">
+            <div class="home-page">
+                <!-- Title Section -->
+                <div class="title-section">
+                    <span class="title-the">THE</span>
+                    <h1 class="main-title">Bridgerton<br/>Game</h1>
+                </div>
+
+                <!-- Navigation Tiles -->
+                <div class="tiles-container">
+                    <a href="pages/classement.html" class="nav-tile">
+                        <div class="tile-frame">
+                            <img src="images/Classement.png" alt="Classement" class="tile-image" />
+                        </div>
+                    </a>
+                    <a href="pages/personnages.html" class="nav-tile">
+                        <div class="tile-frame">
+                            <img src="images/Personnages.png" alt="Personnages" class="tile-image" />
+                        </div>
+                    </a>
+                    <a href="pages/mon-espace.html" class="nav-tile">
+                        <div class="tile-frame">
+                            <img src="images/MonEspace.png" alt="Mon Espace" class="tile-image" />
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Chronicles Section -->
+                <div class="chronicles-section">
+                    <div class="section-header">
+                        <div class="flower-divider left">
+                            <img src="images/Fleurs.png" alt="" />
+                        </div>
+                        <div class="section-title">
+                            <span class="title-the">THE</span>
+                            <h2>Chronique<br/>Mondaine</h2>
+                        </div>
+                        <div class="flower-divider right">
+                            <img src="images/Fleurs.png" alt="" />
+                        </div>
+                    </div>
+
+                    <div class="articles-list" id="articles-list">
+                        <!-- Articles will be loaded by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

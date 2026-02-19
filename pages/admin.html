@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - The Bridgerton Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <link rel="icon" type="image/png" href="../images/LadyWithldown.png">
+</head>
+<body>
+    <!-- Header with Flowers -->
+    <header class="site-header">
+        <div class="header-flowers">
+            <img src="../images/Fleurs.png" alt="Fleurs" />
+        </div>
+        <div class="header-content">
+            <a href="../index.html" class="logo-link">
+                <div class="logo-silhouette">
+                    <img src="../images/LadyWithldown.png" alt="Lady Whistledown" />
+                </div>
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div id="login-section" class="login-section">
+            <div class="page-title">
+                <span class="title-login">LOGIN</span>
+                <h1>Dashboard</h1>
+            </div>
+
+            <div class="login-container">
+                <div class="admin-avatar-frame">
+                    <div class="ornament-frame">
+                        <img src="../images/OrnementCadre.png" alt="" class="ornament-border" />
+                        <div class="avatar-container">
+                            <img src="../images/AdminAvatar.png" alt="Admin" class="admin-avatar" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="login-form">
+                    <div class="form-group">
+                        <label class="form-label">Login</label>
+                        <input type="text" 
+                               class="form-input" 
+                               id="username"
+                               placeholder="" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" 
+                               class="form-input" 
+                               id="password"
+                               placeholder="" />
+                    </div>
+
+                    <p class="error-message" id="error-message"></p>
+
+                    <button class="validate-btn" onclick="validateLogin()">
+                        <span class="btn-text">Valider</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="dashboard-section" class="dashboard-section" style="display: none;">
+            <div class="dashboard-header">
+                <h2>Tableau de Bord Admin</h2>
+                <button class="logout-btn" onclick="logout()">
+                    <span>Déconnexion</span>
+                </button>
+            </div>
+
+            <div class="dashboard-tabs">
+                <button class="tab-btn active" onclick="setTab('scores')" data-tab="scores">
+                    Gérer les Scores
+                </button>
+                <button class="tab-btn" onclick="setTab('articles')" data-tab="articles">
+                    Publications
+                </button>
+                <button class="tab-btn" onclick="setTab('voting')" data-tab="voting">
+                    Vote Whistledown
+                </button>
+                <button class="tab-btn" onclick="setTab('reveal')" data-tab="reveal">
+                    Révélation
+                </button>
+            </div>
+
+            <div class="tab-content">
+                <!-- Scores Tab -->
+                <div id="scores-tab" class="tab-pane active">
+                    <h3>Gestion des Scores par Jeu</h3>
+                    <div class="scores-table-container">
+                        <table class="admin-table" id="scores-table">
+                            <thead>
+                                <tr id="scores-header">
+                                    <th>Jeu</th>
+                                    <!-- Family headers will be loaded by JavaScript -->
+                                </tr>
+                            </thead>
+                            <tbody id="scores-body">
+                                <!-- Scores will be loaded by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="subsection-title">Malus Whistledown par Famille</h3>
+                    <div class="penalties-grid" id="penalties-grid">
+                        <!-- Penalties will be loaded by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Articles Tab -->
+                <div id="articles-tab" class="tab-pane" style="display: none;">
+                    <h3>Gestion des Publications</h3>
+                    <div class="articles-list" id="admin-articles-list">
+                        <!-- Articles will be loaded by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Voting Tab -->
+                <div id="voting-tab" class="tab-pane" style="display: none;">
+                    <h3>Autorisation du Vote par Famille</h3>
+                    <div class="voting-grid" id="voting-grid">
+                        <!-- Voting toggles will be loaded by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Reveal Tab -->
+                <div id="reveal-tab" class="tab-pane" style="display: none;">
+                    <h3>Révélation des Lady Whistledown</h3>
+                    <div class="reveal-grid" id="admin-reveal-grid">
+                        <!-- Reveal buttons will be loaded by JavaScript -->
+                    </div>
+
+                    <div class="reveal-all-section">
+                        <button class="reveal-all-btn" onclick="revealAll()">
+                            Révéler Tous les Lady Whistledown
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/data.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+@page "/"
+@using BridgertonGame.Shared.Models
+@inject ApiService ApiService
+
+<PageTitle>The Bridgerton Game</PageTitle>
+
+<Header />
+
+<main class="main-content">
+    <div class="title-section">
+        <span class="title-the">THE</span>
+        <h1 class="main-title">Bridgerton<br/>Game</h1>
+    </div>
+
+    <div class="tiles-container">
+        <a href="/classement" class="nav-tile">
+            <div class="tile-frame">
+                <img src="images/Classement.png" alt="Classement" class="tile-image" />
+            </div>
+        </a>
+        <a href="/personnages" class="nav-tile">
+            <div class="tile-frame">
+                <img src="images/Personnages.png" alt="Personnages" class="tile-image" />
+            </div>
+        </a>
+        <a href="/mon-espace" class="nav-tile">
+            <div class="tile-frame">
+                <img src="images/MonEspace.png" alt="Mon Espace" class="tile-image" />
+            </div>
+        </a>
+    </div>
+
+    <div class="chronicles-section">
+        <div class="section-header">
+            <div class="flower-divider left">
+                <img src="images/Fleurs.png" alt="" />
+            </div>
+            <div class="section-title">
+                <span class="title-the">THE</span>
+                <h2>Chronique<br/>Mondaine</h2>
+            </div>
+            <div class="flower-divider right">
+                <img src="images/Fleurs.png" alt="" />
+            </div>
+        </div>
+
+        <div class="articles-list">
+            @if (articles == null)
+            {
+                <p>Chargement...</p>
+            }
+            else
+            {
+                @foreach (var article in articles)
+                {
+                    <div class="article-card">
+                        <div class="article-border">
+                            <div class="article-content">
+                                <p class="article-greeting">@article.Title</p>
+                                <p class="article-text">"@article.Content"</p>
+                                <div class="article-footer">
+                                    <span class="signature">Lady Whistledown</span>
+                                    <span class="family-name">Famille<br/>@article.FamilyName</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</main>
+
+@code {
+    private List<Article>? articles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        articles = await ApiService.GetAllArticlesAsync();
+    }
+}
