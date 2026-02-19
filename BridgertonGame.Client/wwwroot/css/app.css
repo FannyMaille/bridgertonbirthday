@@ -60,16 +60,16 @@ a, .btn-link {
 
 .header-flowers {
     width: 100%;
-    overflow: visible;
+    height: 150px;
+    background-image: url('../images/FleursBG.png');
+    background-repeat: repeat-x;
+    background-size: auto 100%;
+    background-position: center top;
     line-height: 0;
 }
 
 .header-flowers img {
-    width: 100%;
-    height: auto;
-    display: block;
-    object-fit: contain;
-    object-position: top;
+    display: none;
 }
 
 .header-content {
@@ -165,6 +165,10 @@ a, .btn-link {
         margin-bottom: -130px;
     }
 
+    .header-flowers {
+        height: 180px;
+    }
+
     .hero-section {
         min-height: 220px;
     }
@@ -187,6 +191,10 @@ a, .btn-link {
 @media (min-width: 1024px) {
     .site-header {
         margin-bottom: -150px;
+    }
+
+    .header-flowers {
+        height: 200px;
     }
 
     .hero-section {
