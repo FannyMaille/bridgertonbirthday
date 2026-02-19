@@ -2,15 +2,15 @@ name: Build, Push and Deploy Docker Container
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ master ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ master ]
   workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  CONTAINER_NAME: bridgertongame
+  CONTAINER_NAME: bridgerton
 
 jobs:
   build-and-push:
@@ -49,7 +49,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./BridgertonGame.Server/Dockerfile
+          file: ./Server/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -86,7 +86,7 @@ jobs:
       - name: Remove dangling images (cleanup)
         run: |
           docker image prune -f
-          echo "✓ Old images cleaned up"
+          echo "? Old images cleaned up"
 
       - name: Run new container
         run: |
@@ -97,19 +97,18 @@ jobs:
             -p 9080:9080 \
             -p 9081:9081 \
             -e ASPNETCORE_ENVIRONMENT=Production \
-            -e ASPNETCORE_URLS=http://+:9080 \
+            -e API_BASE_URL=${{ secrets.API_BASE_URL }} \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}:latest
 
       - name: Verify deployment
         run: |
           sleep 5
           docker ps | grep ${{ env.CONTAINER_NAME }}
-          echo "✓ Container deployed successfully!"
+          echo "? Container deployed successfully!"
 
       - name: Show container logs
         run: |
           docker logs ${{ env.CONTAINER_NAME }} --tail 50
-
   cleanup-registry:
     needs: deploy
     runs-on: self-hosted
@@ -117,11 +116,11 @@ jobs:
       packages: write
 
     steps:
-      - name: Delete old container images
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: 'bridgertongame'
-          package-type: 'container'
-          min-versions-to-keep: 5
-          delete-only-untagged-versions: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Delete old container images
+      uses: actions/delete-package-versions@v5
+      with:
+        package-name: 'bridgerton'
+        package-type: 'container'
+        min-versions-to-keep: 5
+        delete-only-untagged-versions: false
+        token: ${{ secrets.GITHUB_TOKEN }}
