@@ -8,39 +8,31 @@ namespace BridgertonGame.Server.Controllers;
 [Route("api/[controller]")]
 public class PlayersController : ControllerBase
 {
-    private readonly GameDataService _gameData;
+    private readonly DatabaseGameDataService _gameData;
 
-    public PlayersController(GameDataService gameData)
+    public PlayersController(DatabaseGameDataService gameData)
     {
         _gameData = gameData;
     }
 
     [HttpGet]
-    public ActionResult<List<Player>> GetAll()
+    public async Task<ActionResult<List<Player>>> GetAll()
     {
-        return Ok(_gameData.GetAllPlayers());
-    }
-
-    [HttpGet("{id}")]
-    public ActionResult<Player> GetById(string id)
-    {
-        var player = _gameData.GetPlayerById(id);
-        if (player == null)
-            return NotFound();
-
-        return Ok(player);
+        var players = await _gameData.GetAllPlayersAsync();
+        return Ok(players);
     }
 
     [HttpGet("family/{familyId}")]
-    public ActionResult<List<Player>> GetByFamily(string familyId)
+    public async Task<ActionResult<List<Player>>> GetByFamily(string familyId)
     {
-        return Ok(_gameData.GetPlayersByFamily(familyId));
+        var players = await _gameData.GetPlayersByFamilyAsync(familyId);
+        return Ok(players);
     }
 
     [HttpGet("by-code/{code}")]
-    public ActionResult<Player> GetByCode(string code)
+    public async Task<ActionResult<Player>> GetByCode(string code)
     {
-        var player = _gameData.GetPlayerByCode(code);
+        var player = await _gameData.GetPlayerByCodeAsync(code);
         if (player == null)
             return NotFound(new { message = "Code invalide" });
 

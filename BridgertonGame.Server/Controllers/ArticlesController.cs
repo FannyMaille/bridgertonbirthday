@@ -9,29 +9,31 @@ namespace BridgertonGame.Server.Controllers;
 [Route("api/[controller]")]
 public class ArticlesController : ControllerBase
 {
-    private readonly GameDataService _gameData;
+    private readonly DatabaseGameDataService _gameData;
 
-    public ArticlesController(GameDataService gameData)
+    public ArticlesController(DatabaseGameDataService gameData)
     {
         _gameData = gameData;
     }
 
     [HttpGet]
-    public ActionResult<List<Article>> GetAll()
+    public async Task<ActionResult<List<Article>>> GetAll()
     {
-        return Ok(_gameData.GetAllArticles());
+        var articles = await _gameData.GetAllArticlesAsync();
+        return Ok(articles);
     }
 
     [HttpGet("family/{familyId}")]
-    public ActionResult<List<Article>> GetByFamily(string familyId)
+    public async Task<ActionResult<List<Article>>> GetByFamily(string familyId)
     {
-        return Ok(_gameData.GetArticlesByFamily(familyId));
+        var articles = await _gameData.GetArticlesByFamilyAsync(familyId);
+        return Ok(articles);
     }
 
     [HttpPost]
-    public ActionResult<PublishArticleResponse> Publish([FromBody] PublishArticleRequest request)
+    public async Task<ActionResult<PublishArticleResponse>> Publish([FromBody] PublishArticleRequest request)
     {
-        var family = _gameData.GetFamilyById(request.FamilyId);
+        var family = await _gameData.GetFamilyByIdAsync(request.FamilyId);
         if (family == null)
             return NotFound(new PublishArticleResponse 
             { 
@@ -39,9 +41,9 @@ public class ArticlesController : ControllerBase
                 ErrorMessage = "Famille non trouvée" 
             });
 
-        if (!_gameData.CanPublish(request.FamilyId))
+        if (!await _gameData.CanPublishAsync(request.FamilyId))
         {
-            var timeRemaining = _gameData.GetTimeUntilNextPublication(request.FamilyId);
+            var timeRemaining = await _gameData.GetTimeUntilNextPublicationAsync(request.FamilyId);
             return BadRequest(new PublishArticleResponse
             {
                 Success = false,
@@ -50,7 +52,7 @@ public class ArticlesController : ControllerBase
             });
         }
 
-        var article = _gameData.PublishArticle(
+        var article = await _gameData.PublishArticleAsync(
             request.Title,
             request.Content,
             request.FamilyId,
@@ -65,17 +67,17 @@ public class ArticlesController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public ActionResult Delete(string id)
+    public async Task<ActionResult> Delete(string id)
     {
-        _gameData.DeleteArticle(id);
+        await _gameData.DeleteArticleAsync(id);
         return Ok();
     }
 
     [HttpGet("can-publish/{familyId}")]
-    public ActionResult<object> CanPublish(string familyId)
+    public async Task<ActionResult<object>> CanPublish(string familyId)
     {
-        var canPublish = _gameData.CanPublish(familyId);
-        var timeRemaining = _gameData.GetTimeUntilNextPublication(familyId);
+        var canPublish = await _gameData.CanPublishAsync(familyId);
+        var timeRemaining = await _gameData.GetTimeUntilNextPublicationAsync(familyId);
 
         return Ok(new
         {

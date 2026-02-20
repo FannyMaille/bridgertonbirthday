@@ -8,39 +8,38 @@ namespace BridgertonGame.Server.Controllers;
 [Route("api/[controller]")]
 public class GameScoresController : ControllerBase
 {
-    private readonly GameDataService _gameData;
+    private readonly DatabaseGameDataService _gameData;
 
-    public GameScoresController(GameDataService gameData)
+    public GameScoresController(DatabaseGameDataService gameData)
     {
         _gameData = gameData;
     }
 
     [HttpGet]
-    public ActionResult<List<GameScore>> GetAll()
+    public async Task<ActionResult<List<GameScore>>> GetAll()
     {
-        return Ok(_gameData.GetAllGameScores());
+        var scores = await _gameData.GetAllGameScoresAsync();
+        return Ok(scores);
     }
 
     [HttpPut]
-    public ActionResult Update([FromBody] GameScore gameScore)
+    public async Task<ActionResult> Update([FromBody] GameScore gameScore)
     {
-        foreach (var familyScore in gameScore.FamilyScores)
-        {
-            _gameData.UpdateGameScore(gameScore.GameName, familyScore.Key, familyScore.Value);
-        }
+        await _gameData.UpdateGameScoreAsync(gameScore);
         return Ok();
     }
 
     [HttpGet("penalties")]
-    public ActionResult<Dictionary<string, int>> GetPenalties()
+    public async Task<ActionResult<Dictionary<string, int>>> GetPenalties()
     {
-        return Ok(_gameData.GetWhistledownPenalties());
+        var penalties = await _gameData.GetPenaltiesAsync();
+        return Ok(penalties);
     }
 
     [HttpPut("penalties/{familyId}")]
-    public ActionResult UpdatePenalty(string familyId, [FromBody] int penalty)
+    public async Task<ActionResult> UpdatePenalty(string familyId, [FromBody] int penalty)
     {
-        _gameData.UpdateWhistledownPenalty(familyId, penalty);
+        await _gameData.UpdateWhistledownPenaltyAsync(familyId, penalty);
         return Ok();
     }
 }

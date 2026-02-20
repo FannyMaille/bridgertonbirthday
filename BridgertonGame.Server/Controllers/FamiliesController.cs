@@ -9,23 +9,24 @@ namespace BridgertonGame.Server.Controllers;
 [Route("api/[controller]")]
 public class FamiliesController : ControllerBase
 {
-    private readonly GameDataService _gameData;
+    private readonly DatabaseGameDataService _gameData;
 
-    public FamiliesController(GameDataService gameData)
+    public FamiliesController(DatabaseGameDataService gameData)
     {
         _gameData = gameData;
     }
 
     [HttpGet]
-    public ActionResult<List<Family>> GetAll()
+    public async Task<ActionResult<List<Family>>> GetAll()
     {
-        return Ok(_gameData.GetAllFamilies());
+        var families = await _gameData.GetAllFamiliesAsync();
+        return Ok(families);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Family> GetById(string id)
+    public async Task<ActionResult<Family>> GetById(string id)
     {
-        var family = _gameData.GetFamilyById(id);
+        var family = await _gameData.GetFamilyByIdAsync(id);
         if (family == null)
             return NotFound();
 
@@ -33,45 +34,45 @@ public class FamiliesController : ControllerBase
     }
 
     [HttpPost("{id}/vote")]
-    public ActionResult Vote(string id, [FromBody] VoteRequest request)
+    public async Task<ActionResult> Vote(string id, [FromBody] VoteRequest request)
     {
-        var family = _gameData.GetFamilyById(id);
+        var family = await _gameData.GetFamilyByIdAsync(id);
         if (family == null)
             return NotFound();
 
-        _gameData.SetLadyWhistledown(id, request.PlayerId);
+        await _gameData.SetLadyWhistledownAsync(id, request.PlayerId);
         return Ok(new { message = "Vote enregistré" });
     }
 
     [HttpPost("{id}/toggle-voting")]
-    public ActionResult ToggleVoting(string id, [FromBody] bool enabled)
+    public async Task<ActionResult> ToggleVoting(string id, [FromBody] bool enabled)
     {
-        var family = _gameData.GetFamilyById(id);
+        var family = await _gameData.GetFamilyByIdAsync(id);
         if (family == null)
             return NotFound();
 
-        _gameData.ToggleVoting(id, enabled);
+        await _gameData.ToggleVotingAsync(id, enabled);
         return Ok();
     }
 
     [HttpPost("{id}/reveal")]
-    public ActionResult Reveal(string id)
+    public async Task<ActionResult> Reveal(string id)
     {
-        var family = _gameData.GetFamilyById(id);
+        var family = await _gameData.GetFamilyByIdAsync(id);
         if (family == null)
             return NotFound();
 
-        _gameData.RevealLadyWhistledown(id);
+        await _gameData.RevealLadyWhistledownAsync(id);
         return Ok();
     }
 
     [HttpPost("reveal-all")]
-    public ActionResult RevealAll()
+    public async Task<ActionResult> RevealAll()
     {
-        var families = _gameData.GetAllFamilies();
+        var families = await _gameData.GetAllFamiliesAsync();
         foreach (var family in families)
         {
-            _gameData.RevealLadyWhistledown(family.Id);
+            await _gameData.RevealLadyWhistledownAsync(family.Id);
         }
         return Ok();
     }

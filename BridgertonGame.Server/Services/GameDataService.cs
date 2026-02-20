@@ -2,6 +2,12 @@ using BridgertonGame.Shared.Models;
 
 namespace BridgertonGame.Server.Services;
 
+/// <summary>
+/// ⚠️ OBSOLETE - Ce service n'est plus utilisé
+/// La gestion des données a été migrée vers DatabaseGameDataService avec Entity Framework Core
+/// Voir DATABASE_MIGRATION.md pour plus d'informations
+/// </summary>
+[Obsolete("Utiliser DatabaseGameDataService à la place", true)]
 public class GameDataService
 {
     private readonly List<Player> _players;
