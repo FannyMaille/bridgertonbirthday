@@ -44,6 +44,17 @@ public class FamiliesController : ControllerBase
         return Ok(new { message = "Vote enregistré" });
     }
 
+    [HttpPost("{id}/set-whistledown")]
+    public async Task<ActionResult> SetLadyWhistledown(string id, [FromBody] SetWhistledownRequest request)
+    {
+        var family = await _gameData.GetFamilyByIdAsync(id);
+        if (family == null)
+            return NotFound();
+
+        await _gameData.SetLadyWhistledownAsync(id, request.PlayerId);
+        return Ok(new { message = "Lady Whistledown mise à jour" });
+    }
+
     [HttpPost("{id}/toggle-voting")]
     public async Task<ActionResult> ToggleVoting(string id, [FromBody] bool enabled)
     {

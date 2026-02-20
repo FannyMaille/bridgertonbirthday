@@ -71,6 +71,13 @@
                 </div>
             </div>
 
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div style="background: #fee; color: #c33; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;">
+                    <strong>⚠️ Erreur:</strong> @errorMessage
+                </div>
+            }
+
             @if (currentFamily != null)
             {
                 <!-- Stats Cards -->
@@ -233,6 +240,14 @@
         currentPlayer = await AuthService.GetCurrentPlayerAsync();
         if (currentPlayer != null)
         {
+            // Recharger les données fraîches depuis la base de données
+            var freshPlayer = await ApiService.GetPlayerByCodeAsync(currentPlayer.Code);
+            if (freshPlayer != null)
+            {
+                currentPlayer = freshPlayer;
+                await AuthService.SetCurrentPlayerAsync(freshPlayer);
+            }
+            
             await LoadPlayerData();
         }
     }
@@ -241,15 +256,30 @@
     {
         if (currentPlayer == null) return;
 
-        currentFamily = await ApiService.GetFamilyByIdAsync(currentPlayer.FamilyId);
-        familyMembers = await ApiService.GetPlayersByFamilyAsync(currentPlayer.FamilyId);
-        
-        // Charger les points de Lady Whistledown depuis les pénalités
-        if (currentPlayer.IsLadyWhistledown)
+        try
         {
-            var penalties = await ApiService.GetPenaltiesAsync();
-            playerPoints = penalties.ContainsKey(currentPlayer.FamilyId) ? penalties[currentPlayer.FamilyId] : 0;
-            await CheckCooldown();
+            currentFamily = await ApiService.GetFamilyByIdAsync(currentPlayer.FamilyId);
+            
+            if (currentFamily == null)
+            {
+                errorMessage = "Impossible de charger les données de votre famille. Veuillez vérifier que le serveur est démarré.";
+                return;
+            }
+            
+            familyMembers = await ApiService.GetPlayersByFamilyAsync(currentPlayer.FamilyId);
+            
+            // Charger les points de Lady Whistledown depuis les pénalités
+            if (currentPlayer.IsLadyWhistledown)
+            {
+                var penalties = await ApiService.GetPenaltiesAsync();
+                playerPoints = penalties.ContainsKey(currentPlayer.FamilyId) ? penalties[currentPlayer.FamilyId] : 0;
+                await CheckCooldown();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur de connexion au serveur: {ex.Message}";
+            Console.WriteLine($"Erreur LoadPlayerData: {ex}");
         }
     }
 

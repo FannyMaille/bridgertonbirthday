@@ -58,6 +58,10 @@ else
                     <span class="sidebar-menu-icon">📊</span>
                     <span>Scores</span>
                 </button>
+                <button class="sidebar-menu-item @(currentTab == "users" ? "active" : "")" @onclick='() => SetTab("users")'>
+                    <span class="sidebar-menu-icon">👤</span>
+                    <span>Utilisateurs</span>
+                </button>
                 <button class="sidebar-menu-item @(currentTab == "articles" ? "active" : "")" @onclick='() => SetTab("articles")'>
                     <span class="sidebar-menu-icon">📰</span>
                     <span>Articles</span>
@@ -90,8 +94,19 @@ else
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-card-header">
-                        <div class="stat-card-title">Familles</div>
+                        <div class="stat-card-title">Utilisateurs</div>
                         <div class="stat-card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            👤
+                        </div>
+                    </div>
+                    <div class="stat-card-value">@(players?.Count ?? 0)</div>
+                    <div class="stat-card-label">Joueurs inscrits</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-title">Familles</div>
+                        <div class="stat-card-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
                             👥
                         </div>
                     </div>
@@ -102,7 +117,7 @@ else
                 <div class="stat-card">
                     <div class="stat-card-header">
                         <div class="stat-card-title">Articles</div>
-                        <div class="stat-card-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                        <div class="stat-card-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
                             📰
                         </div>
                     </div>
@@ -112,24 +127,13 @@ else
 
                 <div class="stat-card">
                     <div class="stat-card-header">
-                        <div class="stat-card-title">Votes Actifs</div>
-                        <div class="stat-card-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
-                            🗳️
-                        </div>
-                    </div>
-                    <div class="stat-card-value">@(families?.Count(f => f.VotingEnabled) ?? 0)</div>
-                    <div class="stat-card-label">Familles peuvent voter</div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <div class="stat-card-title">Révélations</div>
+                        <div class="stat-card-title">Lady Whistledown</div>
                         <div class="stat-card-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
                             🎭
                         </div>
                     </div>
-                    <div class="stat-card-value">@(families?.Count(f => f.Revealed) ?? 0)</div>
-                    <div class="stat-card-label">Whistledown révélées</div>
+                    <div class="stat-card-value">@(players?.Count(p => p.IsLadyWhistledown) ?? 0)</div>
+                    <div class="stat-card-label">Identités secrètes</div>
                 </div>
             </div>
 
@@ -253,6 +257,122 @@ else
                     }
                 </div>
             }
+            else if (currentTab == "users")
+            {
+                <div class="dashboard-content">
+                    <div class="section-header">
+                        <h2 style="margin: 0;">👤 Gestion des Utilisateurs</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" 
+                                   placeholder="🔍 Rechercher par nom, famille..." 
+                                   @bind="searchQuery"
+                                   @bind:event="oninput"
+                                   style="padding: 10px 15px; border: 2px solid #e8ebef; border-radius: 8px; min-width: 250px;" />
+                            <button class="modern-btn btn-primary" @onclick="AddNewPlayer">
+                                ➕ Ajouter un personnage
+                            </button>
+                        </div>
+                    </div>
+                    
+                    @if (players != null && families != null)
+                    {
+                        var filteredPlayers = string.IsNullOrWhiteSpace(searchQuery) 
+                            ? players 
+                            : players.Where(p => 
+                                p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                                p.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                                families.FirstOrDefault(f => f.Id == p.FamilyId)?.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true
+                            ).ToList();
+
+                        <div class="users-grid">
+                            @foreach (var player in filteredPlayers.OrderBy(p => p.FamilyId).ThenBy(p => p.Name))
+                            {
+                                var playerFamily = families.FirstOrDefault(f => f.Id == player.FamilyId);
+                                
+                                <div class="user-card">
+                                    <div class="user-card-header">
+                                        <div class="user-avatar-wrapper">
+                                            <img src="@player.ImageUrl" alt="@player.Name" class="user-avatar" />
+                                            @if (player.IsLadyWhistledown)
+                                            {
+                                                <div class="whistledown-badge">🎭</div>
+                                            }
+                                        </div>
+                                        <div class="user-info">
+                                            <div class="user-name">@player.Name</div>
+                                            <div class="user-title">@player.Title</div>
+                                            <div class="user-family">
+                                                👥 Famille @(playerFamily?.Name ?? "Inconnue")
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="user-card-body">
+                                        <div class="user-detail-row">
+                                            <span class="user-detail-label">Code d'accès:</span>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span class="user-detail-value">
+                                                    @if (visibleCodes.Contains(player.Id))
+                                                    {
+                                                        @player.Code
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>••••••</span>
+                                                    }
+                                                </span>
+                                                <button class="toggle-visibility-btn" @onclick="() => ToggleCodeVisibility(player.Id)" title="@(visibleCodes.Contains(player.Id) ? "Masquer" : "Afficher")">
+                                                    @(visibleCodes.Contains(player.Id) ? "👁️" : "👁️‍🗨️")
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="user-detail-row" style="border-bottom: none;">
+                                            <span class="user-detail-label">Rôle:</span>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span class="user-detail-value">
+                                                    @if (visibleRoles.Contains(player.Id))
+                                                    {
+                                                        @player.Role
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>•••••••</span>
+                                                    }
+                                                </span>
+                                                <button class="toggle-visibility-btn" @onclick="() => ToggleRoleVisibility(player.Id)" title="@(visibleRoles.Contains(player.Id) ? "Masquer" : "Afficher")">
+                                                    @(visibleRoles.Contains(player.Id) ? "👁️" : "👁️‍🗨️")
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="user-card-footer">
+                                        <button class="icon-btn btn-primary" @onclick="() => EditUser(player)" title="Modifier">
+                                            ✏️
+                                        </button>
+                                        <button class="icon-btn @(player.IsLadyWhistledown ? "btn-warning" : "btn-success")" 
+                                                @onclick="() => ToggleLadyWhistledown(player)" 
+                                                title="@(player.IsLadyWhistledown ? "Retirer Lady Whistledown" : "Définir comme Lady Whistledown")">
+                                            🎭
+                                        </button>
+                                        <button class="icon-btn btn-danger" @onclick="() => DeletePlayer(player)" title="Supprimer">
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        @if (!filteredPlayers.Any())
+                        {
+                            <div style="text-align: center; padding: 60px 20px; color: #999;">
+                                <div style="font-size: 3rem; margin-bottom: 20px;">🔍</div>
+                                <p style="font-size: 1.2rem;">Aucun utilisateur trouvé</p>
+                            </div>
+                        }
+                    }
+                </div>
+            }
             else if (currentTab == "articles")
             {
                 <div class="dashboard-content">
@@ -357,12 +477,80 @@ else
     </div>
 }
 
+@if (showEditModal && editingPlayer != null)
+{
+    <div class="modal-overlay" @onclick="CloseEditModal">
+        <div class="modal-container" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>@(isCreatingPlayer ? "➕ Créer un personnage" : "✏️ Modifier l'utilisateur")</h3>
+                <button class="modal-close-btn" @onclick="CloseEditModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nom</label>
+                    <input type="text" @bind="editingPlayer.Name" class="form-control" placeholder="Ex: Daphné Bridgerton" />
+                </div>
+                <div class="form-group">
+                    <label>Titre</label>
+                    <input type="text" @bind="editingPlayer.Title" class="form-control" placeholder="Ex: Duchesse d'Hastings" />
+                </div>
+                <div class="form-group">
+                    <label>Code d'accès</label>
+                    <input type="text" @bind="editingPlayer.Code" class="form-control" style="text-transform: uppercase;" placeholder="Ex: DAPHNE" />
+                </div>
+                <div class="form-group">
+                    <label>Rôle</label>
+                    <select @bind="editingPlayer.Role" @bind:after="OnRoleChanged" class="form-control">
+                        <option value="">-- Sélectionner un rôle --</option>
+                        <option value="Maîtresse de maison">Maîtresse de maison</option>
+                        <option value="Lady Whistledown">Lady Whistledown</option>
+                        <option value="Invité(e)">Invité(e)</option>
+                    </select>
+                    @if (editingPlayer.Role == "Lady Whistledown")
+                    {
+                        <small style="color: #28a745; margin-top: 5px; display: block;">
+                            ✓ Ce joueur sera marqué comme Lady Whistledown
+                        </small>
+                    }
+                </div>
+                <div class="form-group">
+                    <label>URL de l'image</label>
+                    <input type="text" @bind="editingPlayer.ImageUrl" class="form-control" placeholder="Ex: images/daphne.jpg" />
+                    @if (!string.IsNullOrEmpty(editingPlayer.ImageUrl))
+                    {
+                        <div style="margin-top: 10px; text-align: center;">
+                            <img src="@editingPlayer.ImageUrl" alt="Preview" style="max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #e8ebef;" onerror="this.style.display='none'" />
+                        </div>
+                    }
+                </div>
+                <div class="form-group">
+                    <label>Famille</label>
+                    <select @bind="editingPlayer.FamilyId" class="form-control">
+                        <option value="">-- Sélectionner une famille --</option>
+                        @foreach (var family in families ?? new List<Family>())
+                        {
+                            <option value="@family.Id">@family.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modern-btn btn-outline" @onclick="CloseEditModal">Annuler</button>
+                <button class="modern-btn btn-primary" @onclick="SaveUser" disabled="@(!IsPlayerValid())">
+                    @(isCreatingPlayer ? "➕ Créer" : "💾 Enregistrer")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private bool isAdmin = false;
     private string username = "";
     private string password = "";
     private string errorMessage = "";
     private string currentTab = "scores";
+    private string searchQuery = "";
 
     private List<Family>? families;
     private List<GameScore>? gameScores;
@@ -372,6 +560,12 @@ else
 
     private string? editingGameId = null;
     private string editingGameName = "";
+    private Player? editingPlayer = null;
+    private bool showEditModal = false;
+    private bool isCreatingPlayer = false;
+
+    private HashSet<string> visibleCodes = new();
+    private HashSet<string> visibleRoles = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -499,7 +693,7 @@ else
         if (families == null || gameScores == null) return;
 
         var newGameName = $"Nouveau Jeu {gameScores.Count(g => g.GameName != "Total" && g.GameName != "Pénalités Whistledown") + 1}";
-        
+
         var newGame = new GameScore
         {
             GameName = newGameName,
@@ -559,5 +753,161 @@ else
         username = "";
         password = "";
         errorMessage = "";
+    }
+
+    private void EditUser(Player player)
+    {
+        editingPlayer = new Player
+        {
+            Id = player.Id,
+            Code = player.Code,
+            Name = player.Name,
+            Title = player.Title,
+            ImageUrl = player.ImageUrl,
+            Role = player.Role,
+            FamilyId = player.FamilyId,
+            IsLadyWhistledown = player.IsLadyWhistledown
+        };
+        
+        // S'assurer que le rôle et IsLadyWhistledown sont synchronisés
+        if (editingPlayer.IsLadyWhistledown && editingPlayer.Role != "Lady Whistledown")
+        {
+            editingPlayer.Role = "Lady Whistledown";
+        }
+        else if (!editingPlayer.IsLadyWhistledown && editingPlayer.Role == "Lady Whistledown")
+        {
+            editingPlayer.IsLadyWhistledown = true;
+        }
+        
+        isCreatingPlayer = false;
+        showEditModal = true;
+    }
+
+    private async Task ToggleLadyWhistledown(Player player)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            player.IsLadyWhistledown 
+                ? $"Retirer '{player.Name}' en tant que Lady Whistledown de sa famille ?" 
+                : $"Définir '{player.Name}' comme Lady Whistledown de sa famille ?\n\nCela remplacera l'actuelle Lady Whistledown si elle existe.");
+        
+        if (confirmed)
+        {
+            var family = families?.FirstOrDefault(f => f.Id == player.FamilyId);
+            if (family != null)
+            {
+                if (player.IsLadyWhistledown)
+                {
+                    // Retirer Lady Whistledown
+                    await Http.PostAsJsonAsync($"api/families/{family.Id}/set-whistledown", new { PlayerId = (string?)null });
+                }
+                else
+                {
+                    // Définir comme Lady Whistledown
+                    await Http.PostAsJsonAsync($"api/families/{family.Id}/set-whistledown", new { PlayerId = player.Id });
+                }
+                await LoadData();
+            }
+        }
+    }
+
+    private void CloseEditModal()
+    {
+        editingPlayer = null;
+        showEditModal = false;
+    }
+
+    private async Task SaveUser()
+    {
+        if (editingPlayer == null) return;
+
+        try
+        {
+            if (isCreatingPlayer)
+            {
+                // Création d'un nouvel utilisateur
+                await Http.PostAsJsonAsync("api/players", editingPlayer);
+            }
+            else
+            {
+                // Modification d'un utilisateur existant
+                await Http.PutAsJsonAsync($"api/players/{editingPlayer.Id}", editingPlayer);
+            }
+            await LoadData();
+            CloseEditModal();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Erreur lors de la sauvegarde : {ex.Message}");
+        }
+    }
+
+    private void ToggleCodeVisibility(string playerId)
+    {
+        if (visibleCodes.Contains(playerId))
+        {
+            visibleCodes.Remove(playerId);
+        }
+        else
+        {
+            visibleCodes.Add(playerId);
+        }
+    }
+
+    private void ToggleRoleVisibility(string playerId)
+    {
+        if (visibleRoles.Contains(playerId))
+        {
+            visibleRoles.Remove(playerId);
+        }
+        else
+        {
+            visibleRoles.Add(playerId);
+        }
+    }
+
+    private void AddNewPlayer()
+    {
+        editingPlayer = new Player
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = "",
+            Title = "",
+            Code = "",
+            Role = "",
+            ImageUrl = "",
+            FamilyId = families?.FirstOrDefault()?.Id,
+            IsLadyWhistledown = false
+        };
+        isCreatingPlayer = true;
+        showEditModal = true;
+    }
+
+    private async Task DeletePlayer(Player player)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Êtes-vous sûr de vouloir supprimer l'utilisateur '{player.Name}' ?\n\nCette action est irréversible.");
+        
+        if (confirmed)
+        {
+            await Http.DeleteAsync($"api/players/{player.Id}");
+            await LoadData();
+        }
+    }
+
+    private bool IsPlayerValid()
+    {
+        return !string.IsNullOrWhiteSpace(editingPlayer.Name) &&
+               !string.IsNullOrWhiteSpace(editingPlayer.Title) &&
+               !string.IsNullOrWhiteSpace(editingPlayer.Code) &&
+               !string.IsNullOrWhiteSpace(editingPlayer.Role) &&
+               !string.IsNullOrWhiteSpace(editingPlayer.ImageUrl) &&
+               editingPlayer.FamilyId != null;
+    }
+
+    private void OnRoleChanged()
+    {
+        if (editingPlayer == null) return;
+        
+        // Mettre à jour IsLadyWhistledown automatiquement selon le rôle sélectionné
+        editingPlayer.IsLadyWhistledown = editingPlayer.Role == "Lady Whistledown";
     }
 }

@@ -33,6 +33,59 @@ public class DatabaseGameDataService
             .ToListAsync();
     }
 
+    public async Task<bool> UpdatePlayerAsync(Player player)
+    {
+        var existingPlayer = await _context.Players.FindAsync(player.Id);
+        if (existingPlayer == null)
+            return false;
+
+        existingPlayer.Name = player.Name;
+        existingPlayer.Title = player.Title;
+        existingPlayer.Code = player.Code;
+        existingPlayer.Role = player.Role;
+        existingPlayer.ImageUrl = player.ImageUrl;
+        existingPlayer.FamilyId = player.FamilyId;
+        existingPlayer.IsLadyWhistledown = player.IsLadyWhistledown;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> AddPlayerAsync(Player player)
+    {
+        try
+        {
+            _context.Players.Add(player);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> DeletePlayerAsync(string playerId)
+    {
+        var player = await _context.Players.FindAsync(playerId);
+        if (player == null)
+            return false;
+
+        // Si c'est une Lady Whistledown, retirer la référence dans la famille
+        if (player.IsLadyWhistledown)
+        {
+            var family = await _context.Families.FindAsync(player.FamilyId);
+            if (family != null && family.LadyWhistledownId == playerId)
+            {
+                family.LadyWhistledownId = null;
+            }
+        }
+
+        _context.Players.Remove(player);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     // Family methods
     public async Task<List<Family>> GetAllFamiliesAsync()
     {
