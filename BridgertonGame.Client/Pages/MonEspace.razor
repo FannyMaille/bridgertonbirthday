@@ -78,7 +78,19 @@
                 </div>
             }
 
-            @if (currentFamily != null)
+            @if (currentPlayer.Role == "Maîtresse de maison")
+            {
+                <!-- Message spécial pour la Maîtresse de maison -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 15px; text-align: center; margin: 30px 0;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">👑</div>
+                    <h2 style="font-family: 'Libre Baskerville', serif; font-size: 2rem; margin-bottom: 15px;">Hôte du Bal</h2>
+                    <p style="font-size: 1.2rem; opacity: 0.9;">
+                        Bienvenue, @currentPlayer.Name !<br/>
+                        Vous êtes l'hôte de cet événement prestigieux.
+                    </p>
+                </div>
+            }
+            else if (currentFamily != null)
             {
                 <!-- Stats Cards -->
                 <div class="stats-grid">
@@ -258,6 +270,13 @@
 
         try
         {
+            // Si c'est une Maîtresse de maison, elle n'a pas de famille
+            if (currentPlayer.Role == "Maîtresse de maison")
+            {
+                // Pas besoin de charger la famille ni les membres
+                return;
+            }
+            
             currentFamily = await ApiService.GetFamilyByIdAsync(currentPlayer.FamilyId);
             
             if (currentFamily == null)

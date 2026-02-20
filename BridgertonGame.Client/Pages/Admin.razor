@@ -525,13 +525,19 @@ else
                 </div>
                 <div class="form-group">
                     <label>Famille</label>
-                    <select @bind="editingPlayer.FamilyId" class="form-control">
-                        <option value="">-- Sélectionner une famille --</option>
+                    <select @bind="editingPlayer.FamilyId" class="form-control" disabled="@(editingPlayer.Role == "Maîtresse de maison")">
+                        <option value="">@(editingPlayer.Role == "Maîtresse de maison" ? "Non applicable (Hôte du bal)" : "-- Sélectionner une famille --")</option>
                         @foreach (var family in families ?? new List<Family>())
                         {
                             <option value="@family.Id">@family.Name</option>
                         }
                     </select>
+                    @if (editingPlayer.Role == "Maîtresse de maison")
+                    {
+                        <small style="color: #666; margin-top: 5px; display: block;">
+                            ℹ️ Une Maîtresse de maison n'appartient à aucune famille
+                        </small>
+                    }
                 </div>
             </div>
             <div class="modal-footer">
@@ -895,12 +901,18 @@ else
 
     private bool IsPlayerValid()
     {
+        if (editingPlayer == null) return false;
+        
+        // Pour une Maîtresse de maison, la famille n'est pas obligatoire
+        bool familyValid = editingPlayer.Role == "Maîtresse de maison" || 
+                          !string.IsNullOrWhiteSpace(editingPlayer.FamilyId);
+        
         return !string.IsNullOrWhiteSpace(editingPlayer.Name) &&
                !string.IsNullOrWhiteSpace(editingPlayer.Title) &&
                !string.IsNullOrWhiteSpace(editingPlayer.Code) &&
                !string.IsNullOrWhiteSpace(editingPlayer.Role) &&
                !string.IsNullOrWhiteSpace(editingPlayer.ImageUrl) &&
-               editingPlayer.FamilyId != null;
+               familyValid;
     }
 
     private void OnRoleChanged()
@@ -909,5 +921,11 @@ else
         
         // Mettre à jour IsLadyWhistledown automatiquement selon le rôle sélectionné
         editingPlayer.IsLadyWhistledown = editingPlayer.Role == "Lady Whistledown";
+        
+        // Si c'est une Maîtresse de maison, retirer la famille
+        if (editingPlayer.Role == "Maîtresse de maison")
+        {
+            editingPlayer.FamilyId = null;
+        }
     }
 }

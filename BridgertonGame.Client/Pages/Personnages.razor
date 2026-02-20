@@ -94,7 +94,10 @@
     {
         families = await ApiService.GetAllFamiliesAsync();
         players = await ApiService.GetAllPlayersAsync();
-        hostPlayer = players?.FirstOrDefault(p => p.Role == "Maîtresse de soirée");
+        // Chercher la Maîtresse de maison (peut avoir différents noms de rôle)
+        hostPlayer = players?.FirstOrDefault(p => 
+            p.Role == "Maîtresse de maison" || 
+            p.Role == "Maîtresse de soirée");
     }
 
     private void ShowImageModal(string imageUrl)
