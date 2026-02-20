@@ -43,7 +43,7 @@ public class GameDataService
             new() { Id = "f1", Code = "PENELOPE2024", Name = "Penelope Featherington", Title = "LADY", ImageUrl = "images/characters/penelope-featherington.png", Role = "Lady Whistledown", FamilyId = "featherington", IsLadyWhistledown = true },
             new() { Id = "f2", Code = "PORTIA2024", Name = "Portia Featherington", Title = "LADY", ImageUrl = "images/characters/portia-featherington.png", Role = "Invitée", FamilyId = "featherington", IsLadyWhistledown = false },
             
-            new() { Id = "d1", Code = "AGATHA2024", Name = "Agatha Danbury", Title = "LADY", ImageUrl = "images/characters/agatha-danbury.png", Role = "Maîtresse de soirée", FamilyId = "danbury", IsLadyWhistledown = false },
+            new() { Id = "d1", Code = "AGATHA2024", Name = "Fanny Maille", Title = "LADY", ImageUrl = "images/characters/fanny-hastings.png", Role = "Maîtresse de soirée", FamilyId = "danbury", IsLadyWhistledown = false },
             new() { Id = "d2", Code = "WILL2024", Name = "Will Danbury", Title = "LORD", ImageUrl = "images/characters/will-danbury.png", Role = "Invité", FamilyId = "danbury", IsLadyWhistledown = false },
             
             new() { Id = "s1", Code = "KATE2024", Name = "Kate Sharma", Title = "LADY", ImageUrl = "images/characters/kate-sharma.png", Role = "Lady Whistledown", FamilyId = "sharma", IsLadyWhistledown = true },

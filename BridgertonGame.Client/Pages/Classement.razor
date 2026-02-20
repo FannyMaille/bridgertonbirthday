@@ -16,18 +16,31 @@
     }
     else
     {
-        <div class="ranking-section" style="margin-bottom: 40px;">
-            <div class="ranking-list" style="max-width: 600px; margin: 0 auto;">
+        <!-- Section Classement Moderne -->
+        <div class="modern-ranking-section">
+            <div class="ranking-cards-container">
                 @foreach (var family in families.OrderBy(f => f.Rank))
                 {
-                    <div class="ranking-item @(family.Rank == 1 ? "first" : "")" style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: rgba(255, 255, 255, 0.7); border-radius: 8px; margin-bottom: 10px; position: relative;">
+                    <div class="ranking-card @GetRankingCardClass(family.Rank)">
                         @if (family.Rank == 1)
                         {
-                            <img src="images/Crown.png" alt="Crown" class="crown-icon" style="position: absolute; left: -20px; top: -10px; width: 50px; height: 50px;" />
+                            <div class="crown-decoration">
+                                <img src="images/Crown.png" alt="Crown" />
+                            </div>
                         }
-                        <span class="rank-number" style="font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-weight: bold;">@GetRankText(family.Rank)</span>
-                        <span class="family-name" style="font-family: 'Libre Baskerville', serif; font-size: 1.2rem; flex: 1; text-align: center;">Famille @family.Name</span>
-                        <span class="family-points" style="font-family: 'Times New Roman', serif; font-size: 1.2rem; font-weight: bold;">@family.Points pts</span>
+                        <div class="ranking-card-inner">
+                            <div class="rank-badge">
+                                <span class="rank-number">@GetRankText(family.Rank)</span>
+                            </div>
+                            <div class="family-info">
+                                <span class="family-label">Famille</span>
+                                <span class="family-name-text">@family.Name</span>
+                            </div>
+                            <div class="points-badge">
+                                <span class="points-value">@family.Points</span>
+                                <span class="points-label">pts</span>
+                            </div>
+                        </div>
                     </div>
                 }
             </div>
@@ -35,11 +48,11 @@
 
         <div class="section-divider">
             <div class="flower-line">
-                <img src="images/Fleurs.png" alt="" />
+                <img src="images/Ornement.png" alt="" />
             </div>
             <h3>Tableau des<br/>Points</h3>
             <div class="flower-line">
-                <img src="images/Fleurs.png" alt="" />
+                <img src="images/Ornement.png" alt="" />
             </div>
         </div>
 
@@ -76,49 +89,55 @@
 
         <div class="section-divider">
             <div class="flower-line">
-                <img src="images/Fleurs.png" alt="" />
+                <img src="images/Ornement.png" alt="" />
             </div>
             <h3>Lady<br/>Whistledown</h3>
             <div class="flower-line">
-                <img src="images/Fleurs.png" alt="" />
+                <img src="images/Ornement.png" alt="" />
             </div>
         </div>
 
-        <div class="reveal-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 30px;">
+        <div class="characters-grid-modern">
             @foreach (var family in families)
             {
                 var ladyWhistledown = family.LadyWhistledownId != null ? players?.FirstOrDefault(p => p.Id == family.LadyWhistledownId) : null;
                 
-                <div class="reveal-card" style="text-align: center;">
-                    <div class="reveal-frame">
-                        <div class="ornament-frame" style="margin: 0 auto;">
-                            <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
-                            <div class="silhouette-container">
-                                @if (family.Revealed && ladyWhistledown != null)
-                                {
-                                    <img src="@ladyWhistledown.ImageUrl" alt="@ladyWhistledown.Name" class="revealed-image" />
-                                }
-                                else
-                                {
-                                    <img src="images/LadyWithldown.png" alt="Mystery" class="mystery-silhouette" />
-                                }
-                            </div>
+                <div class="character-card-modern reveal-card-wrapper">
+                    <div class="character-card-inner">
+                        <div class="character-image-wrapper-large">
+                            @if (family.Revealed && ladyWhistledown != null)
+                            {
+                                <img src="@ladyWhistledown.ImageUrl" alt="@ladyWhistledown.Name" class="character-image-large" @onclick="() => ShowImageModal(ladyWhistledown.ImageUrl)" />
+                            }
+                            else
+                            {
+                                <img src="images/LadyWithldown.png" alt="Mystery" class="character-image-large mystery-silhouette-large" />
+                            }
                         </div>
-                    </div>
-                    <div class="reveal-info" style="margin-top: 15px;">
-                        <span class="reveal-label" style="display: block; font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px;">FAMILLE</span>
-                        @if (family.Revealed && ladyWhistledown != null)
-                        {
-                            <span class="reveal-name" style="display: block; font-family: 'Libre Baskerville', serif; font-size: 1.2rem; font-style: italic; margin: 5px 0;">@ladyWhistledown.Name</span>
-                        }
-                        else
-                        {
-                            <span class="reveal-mystery" style="display: block; font-family: 'Libre Baskerville', serif; font-size: 1.2rem; font-style: italic; margin: 5px 0;">??? @family.Name</span>
-                        }
-                        <span class="reveal-points" style="display: block; font-family: 'Times New Roman', serif; font-size: 0.9rem;">xx pts</span>
+                        <div class="character-info-modern">
+                            <div class="character-title-text">FAMILLE @family.Name</div>
+                            @if (family.Revealed && ladyWhistledown != null)
+                            {
+                                <div class="character-name-text">@ladyWhistledown.Name</div>
+                            }
+                            else
+                            {
+                                <div class="character-name-text mystery-name">???</div>
+                            }
+                        </div>
                     </div>
                 </div>
             }
+        </div>
+    }
+
+    @if (showModal)
+    {
+        <div class="image-modal-overlay" @onclick="CloseImageModal">
+            <div class="image-modal-container" @onclick:stopPropagation="true">
+                <button class="modal-close-btn" @onclick="CloseImageModal">✕</button>
+                <img src="@selectedImage" alt="Agrandir" class="modal-image" />
+            </div>
         </div>
     }
 </main>
@@ -127,6 +146,8 @@
     private List<Family>? families;
     private List<GameScore>? gameScores;
     private List<Player>? players;
+    private bool showModal = false;
+    private string selectedImage = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,6 +166,14 @@
         _ => $"{rank}eme"
     };
 
+    private string GetRankingCardClass(int rank) => rank switch
+    {
+        1 => "rank-first",
+        2 => "rank-second",
+        3 => "rank-third",
+        _ => ""
+    };
+
     private string GetRowClass(string gameName) => gameName switch
     {
         "Total" => "total-row",
@@ -153,4 +182,16 @@
     };
 
     private string FormatScore(int score) => score == 0 ? "-" : $"{score}pts";
+
+    private void ShowImageModal(string imageUrl)
+    {
+        selectedImage = imageUrl;
+        showModal = true;
+    }
+
+    private void CloseImageModal()
+    {
+        showModal = false;
+        selectedImage = "";
+    }
 }

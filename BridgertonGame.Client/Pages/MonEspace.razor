@@ -17,135 +17,184 @@
 <main class="main-content">
     @if (currentPlayer == null)
     {
-        <div class="login-section" style="max-width: 500px; margin: 50px auto; text-align: center;">
-            <div class="ornament-frame" style="margin: 0 auto 30px;">
-                <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
-                <div class="silhouette-container">
-                    <img src="images/LadyWithldown.png" alt="Silhouette" class="silhouette" />
+        <!-- Login Section Moderne -->
+        <div class="modern-login-section">
+            <div class="login-card-modern">
+                <div class="login-icon">
+                    <img src="images/LadyWithldown.png" alt="Login" />
                 </div>
-            </div>
-
-            <div class="login-form" style="background: rgba(255, 255, 255, 0.7); padding: 30px; border-radius: 8px;">
-                <label class="code-label" style="display: block; margin-bottom: 20px;">Entre ton code personnel :</label>
-                <input type="text" class="code-input" style="width: 100%; margin-bottom: 10px;" @bind="playerCode" @onkeypress="HandleKeyPress" placeholder="CODE" />
-                @if (!string.IsNullOrEmpty(errorMessage))
-                {
-                    <p class="error-message" style="margin: 10px 0;">@errorMessage</p>
-                }
-                <button class="validate-btn" style="margin-top: 20px;" @onclick="ValidateCode">
-                    <span class="btn-text">Valider</span>
-                </button>
+                <h2 class="login-title">Bienvenue</h2>
+                <p class="login-subtitle">Entre ton code personnel</p>
+                
+                <div class="login-form-modern">
+                    <input type="text" 
+                           class="code-input-modern" 
+                           @bind="playerCode" 
+                           @onkeypress="HandleKeyPress" 
+                           placeholder="CODE" 
+                           autocomplete="off" />
+                    
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert-message">
+                            <span>@errorMessage</span>
+                        </div>
+                    }
+                    
+                    <button class="validate-btn-modern" @onclick="ValidateCode">
+                        Valider
+                    </button>
+                </div>
             </div>
         </div>
     }
     else
     {
-        <div class="profile-section">
-            <div class="player-info" style="text-align: center; margin-bottom: 40px;">
-                <div class="ornament-frame" style="margin: 0 auto;">
-                    <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
-                    <div class="player-image-container">
-                        <img src="@currentPlayer.ImageUrl" alt="@currentPlayer.Name" class="player-image" />
-                    </div>
+        <!-- Profile Section Moderne -->
+        <div class="modern-profile-section">
+            
+            <!-- Player Card -->
+            <div class="player-card-modern">
+                <div class="player-image-wrapper">
+                    <img src="@currentPlayer.ImageUrl" alt="@currentPlayer.Name" class="player-avatar" @onclick="() => ShowImageModal(currentPlayer.ImageUrl)" />
                 </div>
-                <div style="margin-top: 20px;">
-                    <div style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px;">@currentPlayer.Title</div>
-                    <div style="font-family: 'Libre Baskerville', serif; font-size: 1.8rem; font-style: italic; color: #7172C5; margin: 10px 0;">@currentPlayer.Name</div>
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px;">
-                        <span style="font-family: 'Times New Roman', serif;">Rôle:</span>
-                        <span style="font-family: 'Libre Baskerville', serif; font-style: italic;">@(showRole ? currentPlayer.Role : "*******")</span>
-                        <button @onclick="ToggleRoleVisibility" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">@(showRole ? "🙈" : "👁️")</button>
+                <div class="player-details">
+                    <span class="player-title-small">@currentPlayer.Title</span>
+                    <h2 class="player-name-large">@currentPlayer.Name</h2>
+                    <div class="player-role-toggle">
+                        <span class="role-label">Rôle:</span>
+                        <span class="role-value">@(showRole ? currentPlayer.Role : "•••••••")</span>
+                        <button class="toggle-role-btn" @onclick="ToggleRoleVisibility">
+                            @(showRole ? "🙈" : "👁️")
+                        </button>
                     </div>
                 </div>
             </div>
 
             @if (currentFamily != null)
             {
-                <div class="family-stats" style="max-width: 600px; margin: 40px auto; background: rgba(255, 255, 255, 0.7); padding: 30px; border-radius: 8px;">
-                    <h3 style="font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-style: italic; text-align: center; margin-bottom: 20px;">Les points et le classement de ma Famille @currentFamily.Name</h3>
-                    <div style="display: flex; justify-content: space-around; margin-top: 20px;">
-                        <div style="text-align: center;">
-                            <div style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px;">CLASSEMENT</div>
-                            <div style="font-family: 'Libre Baskerville', serif; font-size: 2.5rem; font-weight: bold; color: #7172C5;">@currentFamily.Rank°</div>
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card stat-rank">
+                        <div class="stat-icon">🏆</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Classement</span>
+                            <span class="stat-value">@GetRankText(currentFamily.Rank)</span>
                         </div>
-                        <div style="text-align: center;">
-                            <div style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px;">POINTS</div>
-                            <div style="font-family: 'Libre Baskerville', serif; font-size: 2.5rem; font-weight: bold; color: #7172C5;">@currentFamily.Points</div>
+                    </div>
+                    <div class="stat-card stat-points">
+                        <div class="stat-icon">⭐</div>
+                        <div class="stat-content">
+                            <span class="stat-label">Points</span>
+                            <span class="stat-value">@currentFamily.Points</span>
                         </div>
                     </div>
                 </div>
 
+                <!-- Family Section -->
                 <div class="section-divider">
-                    <div class="flower-line"><img src="images/Fleurs.png" alt="" /></div>
-                    <h3>Les Membres de<br/>Ma Famille @currentFamily.Name</h3>
-                    <div class="flower-line"><img src="images/Fleurs.png" alt="" /></div>
+                    <div class="flower-line"><img src="images/Ornement.png" alt="" /></div>
+                    <h3>Ma Famille<br/>@currentFamily.Name</h3>
+                    <div class="flower-line"><img src="images/Ornement.png" alt="" /></div>
                 </div>
 
-                <div class="members-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; margin: 30px 0 50px;">
+                <div class="characters-grid-modern">
                     @foreach (var member in familyMembers)
                     {
-                        <div class="member-card" style="text-align: center;">
-                            <div class="ornament-frame member-frame" style="margin: 0 auto;">
-                                <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
-                                <div class="member-image-container">
-                                    <img src="@member.ImageUrl" alt="@member.Name" class="member-image" />
+                        <div class="character-card-modern">
+                            <div class="character-card-inner">
+                                <div class="character-image-wrapper-large">
+                                    <img src="@member.ImageUrl" alt="@member.Name" class="character-image-large" @onclick="() => ShowImageModal(member.ImageUrl)" />
+                                </div>
+                                <div class="character-info-modern">
+                                    <div class="character-title-text">@member.Title</div>
+                                    <div class="character-name-text">@member.Name</div>
                                 </div>
                             </div>
-                            <div class="member-title" style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px; margin-top: 15px;">@member.Title</div>
-                            <div class="member-name" style="font-family: 'Libre Baskerville', serif; font-size: 1.2rem; font-style: italic; color: #7172C5;">@member.Name</div>
                         </div>
                     }
                 </div>
 
+                <!-- Voting Section -->
                 @if (currentFamily.VotingEnabled)
                 {
-                    <div class="voting-section" style="max-width: 600px; margin: 40px auto; background: rgba(255, 255, 255, 0.7); padding: 30px; border-radius: 8px;">
-                        <h3 style="font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-style: italic; text-align: center; margin-bottom: 20px;">Vote pour Lady Whistledown</h3>
-                        <select class="member-select" style="width: 100%; margin-bottom: 20px;" @bind="selectedMemberId">
-                            <option value="">Selectionne un nom</option>
-                            @foreach (var member in familyMembers)
-                            {
-                                <option value="@member.Id">@member.Name</option>
-                            }
-                        </select>
-                        <button class="confirm-btn" style="width: 100%;" disabled="@(string.IsNullOrEmpty(selectedMemberId))" @onclick="ConfirmVote">
-                            <span class="btn-text">Confirmer mon vote</span>
-                        </button>
+                    <div class="modern-card voting-card">
+                        <div class="card-header">
+                            <div class="header-icon">🗳️</div>
+                            <h3>Vote pour Lady Whistledown</h3>
+                        </div>
+                        <div class="card-body">
+                            <select class="modern-select" @bind="selectedMemberId">
+                                <option value="">Sélectionne un nom</option>
+                                @foreach (var member in familyMembers)
+                                {
+                                    <option value="@member.Id">@member.Name</option>
+                                }
+                            </select>
+                            <button class="modern-btn primary-btn" 
+                                    disabled="@(string.IsNullOrEmpty(selectedMemberId))" 
+                                    @onclick="ConfirmVote">
+                                Confirmer mon vote
+                            </button>
+                        </div>
                     </div>
                 }
 
+                <!-- Publication Section -->
                 @if (currentPlayer.IsLadyWhistledown)
                 {
-                    <div class="publication-section" style="max-width: 800px; margin: 40px auto; background: rgba(255, 255, 255, 0.7); padding: 30px; border-radius: 8px;">
-                        <h3 style="font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-style: italic; text-align: center; margin-bottom: 20px;">Publier une Chronique</h3>
-                        
-                        <div class="article-editor-container">
-                            <textarea class="article-editor" style="width: 100%; min-height: 150px; resize: vertical; margin-bottom: 10px;" maxlength="300" @bind="articleContent" @oninput="UpdateCharCount" placeholder="Écris ta chronique mondaine..."></textarea>
-                            <div style="text-align: right; font-family: 'Times New Roman', serif; font-size: 0.9rem; margin-bottom: 10px;">@charCount/300 charactères</div>
+                    <div class="modern-card publication-card">
+                        <div class="card-header">
+                            <div class="header-icon">✍️</div>
+                            <h3>Publier une Chronique</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="editor-wrapper">
+                                <textarea class="modern-textarea" 
+                                          maxlength="300" 
+                                          @bind="articleContent" 
+                                          @oninput="UpdateCharCount" 
+                                          placeholder="Écris ta chronique mondaine..."></textarea>
+                                <div class="char-counter">@charCount / 300</div>
+                            </div>
                             
                             @if (timeUntilNext.HasValue && timeUntilNext.Value > TimeSpan.Zero)
                             {
-                                <p class="cooldown-message" style="text-align: center; color: #d32f2f; margin-bottom: 10px;">
-                                    Prochaine publication possible dans: @FormatTimeRemaining(timeUntilNext.Value)
-                                </p>
+                                <div class="cooldown-alert">
+                                    <span class="alert-icon">⏱️</span>
+                                    <span>Prochaine publication dans @FormatTimeRemaining(timeUntilNext.Value)</span>
+                                </div>
                             }
                             
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-family: 'Times New Roman', serif;">Famille<br/>@currentFamily.Name</span>
-                                <button class="publish-btn" disabled="@(!CanPublish())" @onclick="PublishArticle">
-                                    <span class="btn-text">Publier</span>
+                            <div class="publish-footer">
+                                <span class="family-badge">Famille @currentFamily.Name</span>
+                                <button class="modern-btn primary-btn" 
+                                        disabled="@(!CanPublish())" 
+                                        @onclick="PublishArticle">
+                                    Publier
                                 </button>
                             </div>
                         </div>
                     </div>
                 }
 
-                <div style="text-align: center; margin: 40px 0;">
-                    <button class="logout-btn" @onclick="Logout">
-                        <span class="btn-text">Déconnexion</span>
+                <!-- Logout Button -->
+                <div class="logout-section">
+                    <button class="modern-btn logout-btn" @onclick="Logout">
+                        <span>🚪</span> Déconnexion
                     </button>
                 </div>
             }
+        </div>
+    }
+
+    @if (showModal)
+    {
+        <div class="image-modal-overlay" @onclick="CloseImageModal">
+            <div class="image-modal-container" @onclick:stopPropagation="true">
+                <button class="modal-close-btn" @onclick="CloseImageModal">✕</button>
+                <img src="@selectedImage" alt="Agrandir" class="modal-image" />
+            </div>
         </div>
     }
 </main>
@@ -162,6 +211,8 @@
     private int charCount = 0;
     private TimeSpan? timeUntilNext;
     private System.Threading.Timer? cooldownTimer;
+    private bool showModal = false;
+    private string selectedImage = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -219,6 +270,16 @@
     {
         showRole = !showRole;
     }
+
+    private string GetRankText(int rank) => rank switch
+    {
+        1 => "1er",
+        2 => "2ème",
+        3 => "3ème",
+        4 => "4ème",
+        5 => "5ème",
+        _ => $"{rank}ème"
+    };
 
     private async Task ConfirmVote()
     {
@@ -323,6 +384,18 @@
     private string FormatTimeRemaining(TimeSpan time)
     {
         return $"{time.Minutes:D2}:{time.Seconds:D2}";
+    }
+
+    private void ShowImageModal(string imageUrl)
+    {
+        selectedImage = imageUrl;
+        showModal = true;
+    }
+
+    private void CloseImageModal()
+    {
+        showModal = false;
+        selectedImage = "";
     }
 
     private async Task Logout()

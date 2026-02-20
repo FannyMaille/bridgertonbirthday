@@ -2,6 +2,7 @@
 @using BridgertonGame.Shared.Models
 @using BridgertonGame.Client.Shared
 @inject ApiService ApiService
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Personnages - The Bridgerton Game</PageTitle>
 
@@ -18,53 +19,66 @@
     {
         @if (hostPlayer != null)
         {
-            <div class="host-section" style="text-align: center; margin-bottom: 50px;">
-                <div class="ornament-frame" style="margin: 0 auto;">
-                    <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
-                    <div class="host-image-container">
-                        <img src="@hostPlayer.ImageUrl" alt="@hostPlayer.Name" class="host-image" />
+            <div class="modern-host-section">
+                <div class="host-card-modern">
+                    <div class="host-badge">
+                        <span>⭐ Hôte du Bal ⭐</span>
                     </div>
-                </div>
-                <div class="host-info" style="margin-top: 15px;">
-                    <div class="host-title" style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 5px;">@hostPlayer.Title</div>
-                    <div class="host-name" style="font-family: 'Libre Baskerville', serif; font-size: 1.5rem; font-style: italic; color: #7172C5;">@hostPlayer.Name</div>
+                    <div class="host-frame-wrapper">
+                        <img src="@hostPlayer.ImageUrl" alt="@hostPlayer.Name" class="host-image-large" @onclick="() => ShowImageModal(hostPlayer.ImageUrl)" />
+                    </div>
+                    <div class="host-info-modern">
+                        <div class="host-title-text">@hostPlayer.Title</div>
+                        <div class="host-name-text">@hostPlayer.Name</div>
+                    </div>
                 </div>
             </div>
         }
 
-        <div class="families-container">
+        <div class="families-container-modern">
             @foreach (var family in families)
             {
                 var familyMembers = players.Where(p => p.FamilyId == family.Id && p.Id != hostPlayer?.Id).ToList();
                 
-                <div class="family-section" style="margin-bottom: 50px;">
+                <div class="family-section-modern">
                     <div class="family-divider section-divider">
                         <div class="flower-line">
-                            <img src="images/Fleurs.png" alt="" />
+                            <img src="images/Ornement.png" alt="" />
                         </div>
                         <h3 class="family-name-title">Famille @family.Name</h3>
                         <div class="flower-line">
-                            <img src="images/Fleurs.png" alt="" />
+                            <img src="images/Ornement.png" alt="" />
                         </div>
                     </div>
 
-                    <div class="family-members-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 30px; margin-top: 30px;">
+                    <div class="characters-grid-modern">
                         @foreach (var member in familyMembers)
                         {
-                            <div class="character-card" style="text-align: center;">
-                                <div class="ornament-frame character-frame" style="margin: 0 auto;">
-                                    <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
-                                    <div class="character-image-container">
-                                        <img src="@member.ImageUrl" alt="@member.Name" class="character-image" />
+                            <div class="character-card-modern">
+                                <div class="character-card-inner">
+                                    <div class="character-image-wrapper-large">
+                                        <img src="@member.ImageUrl" alt="@member.Name" class="character-image-large" @onclick="() => ShowImageModal(member.ImageUrl)" />
+                                    </div>
+                                    <div class="character-info-modern">
+                                        <div class="character-title-text">@member.Title</div>
+                                        <div class="character-name-text">@member.Name</div>
                                     </div>
                                 </div>
-                                <div class="character-title" style="font-family: 'Times New Roman', serif; font-size: 0.9rem; letter-spacing: 2px; margin-top: 15px; margin-bottom: 5px;">@member.Title</div>
-                                <div class="character-name" style="font-family: 'Libre Baskerville', serif; font-size: 1.2rem; font-style: italic; color: #7172C5;">@member.Name</div>
                             </div>
                         }
                     </div>
                 </div>
             }
+        </div>
+    }
+
+    @if (showModal)
+    {
+        <div class="image-modal-overlay" @onclick="CloseImageModal">
+            <div class="image-modal-container" @onclick:stopPropagation="true">
+                <button class="modal-close-btn" @onclick="CloseImageModal">✕</button>
+                <img src="@selectedImage" alt="Agrandir" class="modal-image" />
+            </div>
         </div>
     }
 </main>
@@ -73,11 +87,25 @@
     private List<Family>? families;
     private List<Player>? players;
     private Player? hostPlayer;
+    private bool showModal = false;
+    private string selectedImage = "";
 
     protected override async Task OnInitializedAsync()
     {
         families = await ApiService.GetAllFamiliesAsync();
         players = await ApiService.GetAllPlayersAsync();
         hostPlayer = players?.FirstOrDefault(p => p.Role == "Maîtresse de soirée");
+    }
+
+    private void ShowImageModal(string imageUrl)
+    {
+        selectedImage = imageUrl;
+        showModal = true;
+    }
+
+    private void CloseImageModal()
+    {
+        showModal = false;
+        selectedImage = "";
     }
 }
