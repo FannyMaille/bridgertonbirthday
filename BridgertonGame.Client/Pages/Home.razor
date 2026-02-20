@@ -10,57 +10,86 @@
 <Hero TitlePrefix="THE" Title="Bridgerton<br/>Game" BackgroundImage="images/hero-bg.jpg" />
 
 <main class="main-content">
-    <div class="tiles-container">
-        <a href="/classement" class="nav-tile">
-            <div class="tile-frame">
-                <img src="images/Classement.png" alt="Classement" class="tile-image" />
+    <!-- Navigation avec grosses tuiles -->
+    <div class="tiles-container-modern">
+        <a href="/classement" class="nav-tile-large">
+            <div class="tile-image-wrapper">
+                <img src="images/Classement.png" alt="Classement" class="tile-image-large" />
+            </div>
+            <div class="tile-overlay">
+                <span class="tile-title">Classement</span>
             </div>
         </a>
-        <a href="/personnages" class="nav-tile">
-            <div class="tile-frame">
-                <img src="images/Personnages.png" alt="Personnages" class="tile-image" />
+        
+        <a href="/personnages" class="nav-tile-large">
+            <div class="tile-image-wrapper">
+                <img src="images/Personnages.png" alt="Personnages" class="tile-image-large" />
+            </div>
+            <div class="tile-overlay">
+                <span class="tile-title">Personnages</span>
             </div>
         </a>
-        <a href="/mon-espace" class="nav-tile">
-            <div class="tile-frame">
-                <img src="images/MonEspace.png" alt="Mon Espace" class="tile-image" />
+        
+        <a href="/mon-espace" class="nav-tile-large">
+            <div class="tile-image-wrapper">
+                <img src="images/MonEspace.png" alt="Mon Espace" class="tile-image-large" />
+            </div>
+            <div class="tile-overlay">
+                <span class="tile-title">Mon Espace</span>
             </div>
         </a>
     </div>
 
+    <!-- Section Chroniques style journal -->
     <div class="chronicles-section">
-        <div class="section-header">
-            <div class="flower-divider left">
+        <div class="section-divider">
+            <div class="flower-line">
                 <img src="images/Ornement.png" alt="" />
             </div>
-            <div class="section-title">
-                <span class="title-the">THE</span>
-                <h2>Chronique<br/>Mondaine</h2>
-            </div>
-            <div class="flower-divider right">
+            <h2>La Chronique de<br/>Lady Whistledown</h2>
+            <div class="flower-line">
                 <img src="images/Ornement.png" alt="" />
             </div>
         </div>
 
-        <div class="articles-list">
+        <div class="newspaper-container">
             @if (articles == null)
             {
-                <p>Chargement...</p>
+                <div class="loading-newspaper">
+                    <div class="loading-spinner"></div>
+                    <p>Chargement des chroniques...</p>
+                </div>
+            }
+            else if (!articles.Any())
+            {
+                <div class="empty-newspaper">
+                    <p>📜 Aucune chronique publiée pour le moment</p>
+                </div>
             }
             else
             {
                 @foreach (var article in articles)
                 {
-                    <div class="article-card">
-                        <div class="article-border">
-                            <div class="article-content">
-                                <p class="article-greeting">@article.Title</p>
-                                <p class="article-text">"@article.Content"</p>
-                                <div class="article-footer">
-                                    <span class="signature">Lady Whistledown</span>
-                                    <span class="family-name">Famille<br/>@article.FamilyName</span>
-                                </div>
+                    <div class="newspaper-article">
+                        <div class="newspaper-header">
+                            <div class="newspaper-ornament">✦ ✦ ✦</div>
+                            <div class="newspaper-date">@article.PublishedAt.ToLocalTime().ToString("dd MMMM yyyy")</div>
+                            <div class="newspaper-ornament">✦ ✦ ✦</div>
+                        </div>
+                        
+                        <div class="newspaper-body">
+                            <div class="initial-letter">@article.Title.Substring(0, 1)</div>
+                            <p class="newspaper-greeting">@article.Title.Substring(1)</p>
+                            <p class="newspaper-content">@article.Content</p>
+                        </div>
+                        
+                        <div class="newspaper-footer">
+                            <div class="signature-block">
+                                <div class="signature-line"></div>
+                                <span class="signature-text">Lady Whistledown</span>
+                                <div class="signature-line"></div>
                             </div>
+                            <span class="article-family">Famille @article.FamilyName</span>
                         </div>
                     </div>
                 }
