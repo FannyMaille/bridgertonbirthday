@@ -98,11 +98,21 @@
         </div>
 
         <div class="characters-grid-modern">
-            @foreach (var family in families)
+            @foreach (var rankedFamily in GetRankedWhistledowns())
             {
+                var family = rankedFamily.Family;
+                var rank = rankedFamily.Rank;
                 var ladyWhistledown = family.LadyWhistledownId != null ? players?.FirstOrDefault(p => p.Id == family.LadyWhistledownId) : null;
+                var articleCount = articles?.Count(a => a.FamilyId == family.Id) ?? 0;
+                var points = GetPlayerPoints(family.Id);
                 
-                <div class="character-card-modern reveal-card-wrapper">
+                <div class="character-card-modern reveal-card-wrapper @GetWhistledownRankClass(rank)">
+                    @if (rank == 1 && (family.Revealed || points > 0))
+                    {
+                        <div class="crown-decoration">
+                            <img src="images/Crown.png" alt="Crown" />
+                        </div>
+                    }
                     <div class="character-card-inner">
                         <div class="character-image-wrapper-large">
                             @if (family.Revealed && ladyWhistledown != null)
@@ -119,18 +129,43 @@
                             @if (family.Revealed && ladyWhistledown != null)
                             {
                                 <div class="character-name-text">@ladyWhistledown.Name</div>
-                                <div style="margin-top: 10px; padding: 8px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; display: inline-block;">
-                                    <strong>@GetPlayerPoints(family.Id) pts</strong>
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                                    <div class="rank-badge-whistledown @GetWhistledownRankBadgeClass(rank)">
+                                        <span class="rank-number">@GetRankText(rank)</span>
+                                    </div>
+                                    <div style="padding: 8px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; display: inline-block;">
+                                        <strong>@points pts</strong>
+                                    </div>
                                 </div>
+                                @if (articleCount > 0)
+                                {
+                                    <div style="margin-top: 8px; padding: 6px 12px; background: rgba(102, 126, 234, 0.2); color: #667eea; border-radius: 15px; display: inline-block; font-size: 0.9rem;">
+                                        📰 <strong>@articleCount article@(articleCount > 1 ? "s" : "")</strong>
+                                    </div>
+                                }
                             }
                             else
                             {
                                 <div class="character-name-text mystery-name">???</div>
                                 @if (ladyWhistledown != null && !family.Revealed)
                                 {
-                                    <div style="margin-top: 10px; padding: 8px 15px; background: rgba(113, 114, 197, 0.3); color: #333; border-radius: 20px; display: inline-block;">
-                                        <strong>@GetPlayerPoints(family.Id) pts</strong>
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                                        @if (points > 0 || articleCount > 0)
+                                        {
+                                            <div class="rank-badge-whistledown @GetWhistledownRankBadgeClass(rank)">
+                                                <span class="rank-number">@GetRankText(rank)</span>
+                                            </div>
+                                        }
+                                        <div style="padding: 8px 15px; background: rgba(113, 114, 197, 0.3); color: #333; border-radius: 20px; display: inline-block;">
+                                            <strong>@points pts</strong>
+                                        </div>
                                     </div>
+                                    @if (articleCount > 0)
+                                    {
+                                        <div style="margin-top: 8px; padding: 6px 12px; background: rgba(113, 114, 197, 0.15); color: #555; border-radius: 15px; display: inline-block; font-size: 0.9rem;">
+                                            📰 <strong>@articleCount article@(articleCount > 1 ? "s" : "")</strong>
+                                        </div>
+                                    }
                                 }
                             }
                         </div>
@@ -155,6 +190,7 @@
     private List<Family>? families;
     private List<GameScore>? gameScores;
     private List<Player>? players;
+    private List<Article>? articles;
     private Dictionary<string, int> penalties = new();
     private bool showModal = false;
     private string selectedImage = "";
@@ -164,6 +200,7 @@
         families = await ApiService.GetAllFamiliesAsync();
         gameScores = await ApiService.GetAllGameScoresAsync();
         players = await ApiService.GetAllPlayersAsync();
+        articles = await ApiService.GetAllArticlesAsync();
         penalties = await ApiService.GetPenaltiesAsync();
     }
 
@@ -171,6 +208,37 @@
     {
         return penalties.ContainsKey(familyId) ? penalties[familyId] : 0;
     }
+
+    private List<(Family Family, int Rank)> GetRankedWhistledowns()
+    {
+        if (families == null) return new();
+
+        // Classer par points décroissants
+        var ranked = families
+            .Select(f => new { Family = f, Points = GetPlayerPoints(f.Id) })
+            .OrderByDescending(x => x.Points)
+            .ThenBy(x => x.Family.Name)
+            .Select((x, index) => (Family: x.Family, Rank: index + 1))
+            .ToList();
+
+        return ranked;
+    }
+
+    private string GetWhistledownRankClass(int rank) => rank switch
+    {
+        1 => "whistledown-rank-first",
+        2 => "whistledown-rank-second",
+        3 => "whistledown-rank-third",
+        _ => ""
+    };
+
+    private string GetWhistledownRankBadgeClass(int rank) => rank switch
+    {
+        1 => "rank-badge-gold",
+        2 => "rank-badge-silver",
+        3 => "rank-badge-bronze",
+        _ => "rank-badge-default"
+    };
 
     private string GetRankText(int rank) => rank switch
     {
