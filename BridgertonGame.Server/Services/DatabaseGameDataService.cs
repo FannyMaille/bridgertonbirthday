@@ -475,7 +475,12 @@ public class DatabaseGameDataService
     public async Task<bool> ValidateAdminAsync(string username, string password)
     {
         var admin = await _context.AdminCredentials
-            .FirstOrDefaultAsync(a => a.Username == username && a.Password == password);
-        return admin != null;
+            .FirstOrDefaultAsync(a => a.Username == username);
+        
+        if (admin == null)
+            return false;
+
+        // Verify the password using BCrypt
+        return BCrypt.Net.BCrypt.Verify(password, admin.Password);
     }
 }

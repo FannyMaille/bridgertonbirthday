@@ -125,8 +125,10 @@ public class BridgertonDbContext : DbContext
         );
 
         // Seed Admin Credentials
+        // BCrypt hash of "bridgerton2024" with work factor 11
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword("bridgerton2024", 11);
         modelBuilder.Entity<AdminCredential>().HasData(
-            new AdminCredential { Id = 1, Username = "admin", Password = "bridgerton2024" }
+            new AdminCredential { Id = 1, Username = "admin", Password = hashedPassword }
         );
     }
 }
