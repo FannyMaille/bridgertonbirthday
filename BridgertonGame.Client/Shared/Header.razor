@@ -3,29 +3,79 @@
         <img src="images/FleursBG.png" alt="Fleurs" />
     </div>
     <div class="header-content">
-        <button @onclick="ToggleMenu" class="logo-link burger-button" aria-label="Menu">
+        <a href="/" class="logo-link" aria-label="Accueil">
             <div class="logo-silhouette">
                 <img src="images/LadyWithldown.png" alt="Lady Whistledown" />
             </div>
+        </a>
+        
+        <button @onclick="ToggleMenu" class="burger-button-modern" aria-label="Menu">
+            <div class="burger-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <span class="burger-label">Menu</span>
         </button>
     </div>
     
     @if (isMenuOpen)
     {
-        <div class="burger-menu-overlay" @onclick="CloseMenu"></div>
-        <nav class="burger-menu @(isMenuOpen ? "open" : "")">
-            <div class="menu-header">
-                <div class="menu-silhouette">
-                    <img src="images/LadyWithldown.png" alt="Lady Whistledown" />
+        <div class="burger-menu-overlay-modern" @onclick="CloseMenu"></div>
+        <nav class="burger-menu-modern @(isMenuOpen ? "open" : "")">
+            <div class="menu-header-modern">
+                <div class="menu-brand">
+                    <div class="menu-silhouette-modern">
+                        <img src="images/LadyWithldown.png" alt="Lady Whistledown" />
+                    </div>
+                    <div class="menu-brand-text">
+                        <span class="brand-title">The Bridgerton</span>
+                        <span class="brand-subtitle">Game</span>
+                    </div>
                 </div>
-                <button @onclick="CloseMenu" class="close-menu" aria-label="Fermer le menu">×</button>
+                <button @onclick="CloseMenu" class="close-menu-modern" aria-label="Fermer le menu">
+                    <span class="close-icon">✕</span>
+                </button>
             </div>
-            <ul class="menu-list">
-                <li><a href="/" @onclick="CloseMenu">Accueil</a></li>
-                <li><a href="/classement" @onclick="CloseMenu">Classement</a></li>
-                <li><a href="/personnages" @onclick="CloseMenu">Personnages</a></li>
-                <li><a href="/mon-espace" @onclick="CloseMenu">Mon Espace</a></li>
+            
+            <div class="menu-divider"></div>
+            
+            <ul class="menu-list-modern">
+                <li>
+                    <a href="/" @onclick="CloseMenu" class="menu-item-modern">
+                        <span class="menu-icon">🏠</span>
+                        <span class="menu-label">Accueil</span>
+                        <span class="menu-arrow">→</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/classement" @onclick="CloseMenu" class="menu-item-modern">
+                        <span class="menu-icon">🏆</span>
+                        <span class="menu-label">Classement</span>
+                        <span class="menu-arrow">→</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/personnages" @onclick="CloseMenu" class="menu-item-modern">
+                        <span class="menu-icon">👥</span>
+                        <span class="menu-label">Personnages</span>
+                        <span class="menu-arrow">→</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="/mon-espace" @onclick="CloseMenu" class="menu-item-modern">
+                        <span class="menu-icon">👤</span>
+                        <span class="menu-label">Mon Espace</span>
+                        <span class="menu-arrow">→</span>
+                    </a>
+                </li>
             </ul>
+            
+            <div class="menu-footer-modern">
+                <div class="menu-ornament">✦ ✦ ✦</div>
+                <p class="menu-quote">"The truth shall set you free"</p>
+                <p class="menu-signature">- Lady Whistledown</p>
+            </div>
         </nav>
     }
 </header>
