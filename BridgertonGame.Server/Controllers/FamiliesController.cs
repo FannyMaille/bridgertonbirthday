@@ -87,4 +87,42 @@ public class FamiliesController : ControllerBase
         }
         return Ok();
     }
+
+    [HttpPost]
+    public async Task<ActionResult<Family>> Create([FromBody] Family family)
+    {
+        if (string.IsNullOrWhiteSpace(family.Name))
+            return BadRequest("Le nom de la famille est requis");
+
+        await _gameData.CreateFamilyAsync(family);
+        return CreatedAtAction(nameof(GetById), new { id = family.Id }, family);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult> Update(string id, [FromBody] Family family)
+    {
+        if (id != family.Id)
+            return BadRequest("L'ID de la famille ne correspond pas");
+
+        var existingFamily = await _gameData.GetFamilyByIdAsync(id);
+        if (existingFamily == null)
+            return NotFound();
+
+        await _gameData.UpdateFamilyAsync(family);
+        return Ok();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> Delete(string id)
+    {
+        var family = await _gameData.GetFamilyByIdAsync(id);
+        if (family == null)
+            return NotFound();
+
+        var success = await _gameData.DeleteFamilyAsync(id);
+        if (!success)
+            return BadRequest("Impossible de supprimer la famille, elle contient encore des membres");
+
+        return Ok();
+    }
 }

@@ -137,6 +137,62 @@ public class DatabaseGameDataService
         }
     }
 
+    public async Task CreateFamilyAsync(Family family)
+    {
+        _context.Families.Add(family);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> UpdateFamilyAsync(Family family)
+    {
+        var existingFamily = await _context.Families.FindAsync(family.Id);
+        if (existingFamily == null)
+            return false;
+
+        existingFamily.Name = family.Name;
+        existingFamily.Points = family.Points;
+        existingFamily.Rank = family.Rank;
+        existingFamily.VotingEnabled = family.VotingEnabled;
+        existingFamily.Revealed = family.Revealed;
+        existingFamily.LadyWhistledownId = family.LadyWhistledownId;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> DeleteFamilyAsync(string familyId)
+    {
+        // Check if family has any members
+        var hasMembers = await _context.Players.AnyAsync(p => p.FamilyId == familyId);
+        if (hasMembers)
+            return false;
+
+        var family = await _context.Families.FindAsync(familyId);
+        if (family == null)
+            return false;
+
+        // Delete associated data
+        var cooldown = await _context.PublicationCooldowns.FindAsync(familyId);
+        if (cooldown != null)
+            _context.PublicationCooldowns.Remove(cooldown);
+
+        var penalty = await _context.WhistledownPenalties.FindAsync(familyId);
+        if (penalty != null)
+            _context.WhistledownPenalties.Remove(penalty);
+
+        var articles = await _context.Articles.Where(a => a.FamilyId == familyId).ToListAsync();
+        if (articles.Any())
+            _context.Articles.RemoveRange(articles);
+
+        var gameScores = await _context.GameScores.Where(g => g.FamilyId == familyId).ToListAsync();
+        if (gameScores.Any())
+            _context.GameScores.RemoveRange(gameScores);
+
+        _context.Families.Remove(family);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     // Article methods
     public async Task<List<Article>> GetAllArticlesAsync()
     {

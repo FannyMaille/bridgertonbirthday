@@ -62,6 +62,10 @@ else
                     <span class="sidebar-menu-icon">👤</span>
                     <span>Utilisateurs</span>
                 </button>
+                <button class="sidebar-menu-item @(currentTab == "families" ? "active" : "")" @onclick='() => SetTab("families")'>
+                    <span class="sidebar-menu-icon">👥</span>
+                    <span>Familles</span>
+                </button>
                 <button class="sidebar-menu-item @(currentTab == "articles" ? "active" : "")" @onclick='() => SetTab("articles")'>
                     <span class="sidebar-menu-icon">📰</span>
                     <span>Articles</span>
@@ -373,6 +377,88 @@ else
                     }
                 </div>
             }
+            else if (currentTab == "families")
+            {
+                <div class="dashboard-content">
+                    <div class="section-header">
+                        <h2 style="margin: 0;">👥 Gestion des Familles</h2>
+                        <button class="modern-btn btn-primary" @onclick="AddNewFamily">
+                            ➕ Ajouter une famille
+                        </button>
+                    </div>
+                    
+                    @if (families != null)
+                    {
+                        <div class="users-grid">
+                            @foreach (var family in families.OrderBy(f => f.Name))
+                            {
+                                var familyPlayers = players?.Where(p => p.FamilyId == family.Id).ToList() ?? new List<Player>();
+                                var ladyWhistledown = family.LadyWhistledownId != null ? players?.FirstOrDefault(p => p.Id == family.LadyWhistledownId) : null;
+                                
+                                <div class="user-card">
+                                    <div class="user-card-header" style="flex-direction: column; align-items: center; text-align: center;">
+                                        <div style="font-size: 3rem; margin-bottom: 10px;">👥</div>
+                                        <div class="user-info" style="text-align: center;">
+                                            <div class="user-name">Famille @family.Name</div>
+                                            <div class="user-title">@familyPlayers.Count membre(s)</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="user-card-body">
+                                        <div class="user-detail-row">
+                                            <span class="user-detail-label">Points:</span>
+                                            <span class="user-detail-value">@family.Points pts</span>
+                                        </div>
+                                        <div class="user-detail-row">
+                                            <span class="user-detail-label">Rang:</span>
+                                            <span class="user-detail-value">@family.Rank / 5</span>
+                                        </div>
+                                        <div class="user-detail-row">
+                                            <span class="user-detail-label">Vote:</span>
+                                            <span class="user-detail-value">@(family.VotingEnabled ? "✅ Activé" : "❌ Désactivé")</span>
+                                        </div>
+                                        <div class="user-detail-row" style="border-bottom: none;">
+                                            <span class="user-detail-label">Lady Whistledown:</span>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span class="user-detail-value">
+                                                    @if (visibleWhistledowns.Contains(family.Id))
+                                                    {
+                                                        @(ladyWhistledown?.Name ?? "Non définie")
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>••••••••</span>
+                                                    }
+                                                </span>
+                                                <button class="toggle-visibility-btn" @onclick="() => ToggleWhistledownVisibility(family.Id)" title="@(visibleWhistledowns.Contains(family.Id) ? "Masquer" : "Afficher")">
+                                                    @(visibleWhistledowns.Contains(family.Id) ? "👁️" : "👁️‍🗨️")
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="user-card-footer">
+                                        <button class="icon-btn btn-primary" @onclick="() => EditFamily(family)" title="Modifier">
+                                            ✏️
+                                        </button>
+                                        <button class="icon-btn btn-danger" @onclick="() => DeleteFamily(family)" title="Supprimer">
+                                            🗑️
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        @if (!families.Any())
+                        {
+                            <div style="text-align: center; padding: 60px 20px; color: #999;">
+                                <div style="font-size: 3rem; margin-bottom: 20px;">👥</div>
+                                <p style="font-size: 1.2rem;">Aucune famille enregistrée</p>
+                            </div>
+                        }
+                    }
+                </div>
+            }
             else if (currentTab == "articles")
             {
                 <div class="dashboard-content">
@@ -550,6 +636,44 @@ else
     </div>
 }
 
+@if (showEditFamilyModal && editingFamily != null)
+{
+    <div class="modal-overlay" @onclick="CloseEditFamilyModal">
+        <div class="modal-container" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>@(isCreatingFamily ? "➕ Créer une famille" : "✏️ Modifier la famille")</h3>
+                <button class="modal-close-btn" @onclick="CloseEditFamilyModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Nom de la famille</label>
+                    <input type="text" @bind="editingFamily.Name" class="form-control" placeholder="Ex: Bridgerton" />
+                </div>
+                <div class="form-group">
+                    <label>Points</label>
+                    <input type="number" @bind="editingFamily.Points" class="form-control" placeholder="Ex: 0" />
+                </div>
+                <div class="form-group">
+                    <label>Rang</label>
+                    <input type="number" @bind="editingFamily.Rank" class="form-control" placeholder="Ex: 1" min="1" max="5" />
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                        <input type="checkbox" @bind="editingFamily.VotingEnabled" style="width: auto;" />
+                        Vote activé
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modern-btn btn-outline" @onclick="CloseEditFamilyModal">Annuler</button>
+                <button class="modern-btn btn-primary" @onclick="SaveFamily" disabled="@(!IsFamilyValid())">
+                    @(isCreatingFamily ? "➕ Créer" : "💾 Enregistrer")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private bool isAdmin = false;
     private string username = "";
@@ -569,9 +693,14 @@ else
     private Player? editingPlayer = null;
     private bool showEditModal = false;
     private bool isCreatingPlayer = false;
+    
+    private Family? editingFamily = null;
+    private bool showEditFamilyModal = false;
+    private bool isCreatingFamily = false;
 
     private HashSet<string> visibleCodes = new();
     private HashSet<string> visibleRoles = new();
+    private HashSet<string> visibleWhistledowns = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -871,6 +1000,18 @@ else
         }
     }
 
+    private void ToggleWhistledownVisibility(string familyId)
+    {
+        if (visibleWhistledowns.Contains(familyId))
+        {
+            visibleWhistledowns.Remove(familyId);
+        }
+        else
+        {
+            visibleWhistledowns.Add(familyId);
+        }
+    }
+
     private void AddNewPlayer()
     {
         editingPlayer = new Player
@@ -927,5 +1068,96 @@ else
         {
             editingPlayer.FamilyId = null;
         }
+    }
+
+    // Family management methods
+    private void AddNewFamily()
+    {
+        editingFamily = new Family
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = "",
+            Points = 0,
+            Rank = (families?.Count ?? 0) + 1,
+            VotingEnabled = false,
+            Revealed = false,
+            LadyWhistledownId = null
+        };
+        isCreatingFamily = true;
+        showEditFamilyModal = true;
+    }
+
+    private void EditFamily(Family family)
+    {
+        editingFamily = new Family
+        {
+            Id = family.Id,
+            Name = family.Name,
+            Points = family.Points,
+            Rank = family.Rank,
+            VotingEnabled = family.VotingEnabled,
+            Revealed = family.Revealed,
+            LadyWhistledownId = family.LadyWhistledownId
+        };
+        isCreatingFamily = false;
+        showEditFamilyModal = true;
+    }
+
+    private void CloseEditFamilyModal()
+    {
+        editingFamily = null;
+        showEditFamilyModal = false;
+        isCreatingFamily = false;
+    }
+
+    private async Task SaveFamily()
+    {
+        if (editingFamily == null) return;
+
+        try
+        {
+            if (isCreatingFamily)
+            {
+                await Http.PostAsJsonAsync("api/families", editingFamily);
+            }
+            else
+            {
+                await Http.PutAsJsonAsync($"api/families/{editingFamily.Id}", editingFamily);
+            }
+            await LoadData();
+            CloseEditFamilyModal();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Erreur lors de la sauvegarde : {ex.Message}");
+        }
+    }
+
+    private async Task DeleteFamily(Family family)
+    {
+        var familyPlayers = players?.Where(p => p.FamilyId == family.Id).ToList() ?? new List<Player>();
+        
+        if (familyPlayers.Any())
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Impossible de supprimer la famille '{family.Name}' car elle contient {familyPlayers.Count} membre(s).\n\nVeuillez d'abord supprimer ou réassigner les membres.");
+            return;
+        }
+
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Êtes-vous sûr de vouloir supprimer la famille '{family.Name}' ?\n\nCette action est irréversible.");
+        
+        if (confirmed)
+        {
+            await Http.DeleteAsync($"api/families/{family.Id}");
+            await LoadData();
+        }
+    }
+
+    private bool IsFamilyValid()
+    {
+        if (editingFamily == null) return false;
+        
+        return !string.IsNullOrWhiteSpace(editingFamily.Name) &&
+               editingFamily.Rank >= 1 &&
+               editingFamily.Rank <= 5;
     }
 }

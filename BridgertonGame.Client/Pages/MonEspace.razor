@@ -78,6 +78,13 @@
                 </div>
             }
 
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div style="background: #d4edda; color: #155724; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;">
+                    <strong>✅ Succès:</strong> @successMessage
+                </div>
+            }
+
             @if (currentPlayer.Role == "Maîtresse de maison")
             {
                 <!-- Message spécial pour la Maîtresse de maison -->
@@ -237,6 +244,7 @@
     private List<Player> familyMembers = new();
     private string playerCode = "";
     private string errorMessage = "";
+    private string successMessage = "";
     private bool showRole = false;
     private string selectedMemberId = "";
     private string articleContent = "";
@@ -305,6 +313,7 @@
     private async Task ValidateCode()
     {
         errorMessage = "";
+        successMessage = "";
         if (string.IsNullOrWhiteSpace(playerCode))
         {
             errorMessage = "Veuillez entrer un code";
@@ -353,13 +362,17 @@
 
         try
         {
+            errorMessage = "";
+            successMessage = "";
             var request = new VoteRequest { FamilyId = currentFamily.Id, PlayerId = selectedMemberId };
             await Http.PostAsJsonAsync($"api/families/{currentFamily.Id}/vote", request);
-            errorMessage = "Votre vote a été enregistré !";
+            successMessage = "Votre vote a été enregistré !";
+            _ = ClearMessagesAfterDelay();
         }
         catch
         {
             errorMessage = "Erreur lors de l'enregistrement du vote.";
+            _ = ClearMessagesAfterDelay();
         }
     }
 
@@ -381,6 +394,8 @@
 
         try
         {
+            errorMessage = "";
+            successMessage = "";
             var request = new PublishArticleRequest
             {
                 Title = "Chers amis lecteurs,",
@@ -402,12 +417,14 @@
                     playerPoints = penalties.ContainsKey(currentPlayer.FamilyId) ? penalties[currentPlayer.FamilyId] : 0;
                 }
                 
-                errorMessage = "Votre article a été publié !";
+                successMessage = "Votre article a été publié !";
+                _ = ClearMessagesAfterDelay();
             }
         }
         catch
         {
             errorMessage = "Erreur lors de la publication.";
+            _ = ClearMessagesAfterDelay();
         }
     }
 
@@ -482,7 +499,16 @@
         articleContent = "";
         playerCode = "";
         errorMessage = "";
+        successMessage = "";
         cooldownTimer?.Dispose();
+    }
+
+    private async Task ClearMessagesAfterDelay()
+    {
+        await Task.Delay(5000); // 5 secondes
+        errorMessage = "";
+        successMessage = "";
+        StateHasChanged();
     }
 
     public void Dispose()
