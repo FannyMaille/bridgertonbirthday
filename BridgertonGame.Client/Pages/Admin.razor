@@ -7,77 +7,145 @@
 @inject AuthService AuthService
 @inject HttpClient Http
 
-<PageTitle>Admin - The Bridgerton Game</PageTitle>
+<PageTitle>Admin Dashboard - The Bridgerton Game</PageTitle>
 
-<Header />
+<link href="css/admin.css" rel="stylesheet" />
 
-<main class="main-content">
-    <div class="page-title">
-        <span class="title-login">LOGIN</span>
-        <h1>Administrateur</h1>
-    </div>
-
-    @if (!isAdmin)
-    {
-        <div class="login-section" style="max-width: 500px; margin: 50px auto; background: rgba(255, 255, 255, 0.7); padding: 40px; border-radius: 8px;">
-            <div class="ornament-frame" style="margin: 0 auto 30px;">
-                <img src="images/OrnementCadre.png" alt="" class="ornament-border" />
-                <div class="avatar-container">
-                    <img src="images/AdminAvatar.png" alt="Admin" class="admin-avatar" />
-                </div>
+@if (!isAdmin)
+{
+    <div class="admin-login-section">
+        <div class="login-card">
+            <div class="admin-avatar-wrapper">
+                <img src="images/AdminAvatar.png" alt="Admin" class="admin-avatar" onerror="this.style.display='none'" />
             </div>
 
+            <h1>Administration</h1>
+
             <div class="login-form">
-                <div style="margin-bottom: 20px;">
-                    <label class="form-label" style="display: block; margin-bottom: 10px;">Login :</label>
-                    <input type="text" class="form-input" style="width: 100%;" @bind="username" placeholder="Username" />
+                <div class="login-form-group">
+                    <label>Identifiant</label>
+                    <input type="text" @bind="username" placeholder="Entrez votre identifiant" />
                 </div>
-                <div style="margin-bottom: 20px;">
-                    <label class="form-label" style="display: block; margin-bottom: 10px;">Mot de passe :</label>
-                    <input type="password" class="form-input" style="width: 100%;" @bind="password" @onkeypress="HandleKeyPress" placeholder="Password" />
+                <div class="login-form-group">
+                    <label>Mot de passe</label>
+                    <input type="password" @bind="password" @onkeypress="HandleKeyPress" placeholder="Entrez votre mot de passe" />
                 </div>
                 @if (!string.IsNullOrEmpty(errorMessage))
                 {
-                    <p class="error-message">@errorMessage</p>
+                    <div class="login-error">@errorMessage</div>
                 }
-                <button class="validate-btn" style="width: 100%; margin-top: 20px;" @onclick="ValidateLogin">
-                    <span class="btn-text">Se connecter</span>
+                <button class="login-submit-btn" @onclick="ValidateLogin">
+                    Se connecter
                 </button>
             </div>
         </div>
-    }
-    else
-    {
-        <div class="dashboard-section">
-            <div class="tabs" style="display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; flex-wrap: wrap;">
-                <button class="tab-btn @(currentTab == "scores" ? "active" : "")" style="padding: 10px 20px; background: @(currentTab == "scores" ? "rgba(113, 114, 197, 0.3)" : "rgba(255, 255, 255, 0.7)"); border: 2px solid #7172C5; border-radius: 8px; cursor: pointer; font-family: 'Libre Baskerville', serif;" @onclick='() => SetTab("scores")'>
-                    Scores
+    </div>
+}
+else
+{
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <div class="dashboard-sidebar">
+            <div class="sidebar-header">
+                <h1>🎩 Admin</h1>
+                <p class="subtitle">The Bridgerton Game</p>
+            </div>
+
+            <div class="sidebar-menu">
+                <button class="sidebar-menu-item @(currentTab == "scores" ? "active" : "")" @onclick='() => SetTab("scores")'>
+                    <span class="sidebar-menu-icon">📊</span>
+                    <span>Scores</span>
                 </button>
-                <button class="tab-btn @(currentTab == "articles" ? "active" : "")" style="padding: 10px 20px; background: @(currentTab == "articles" ? "rgba(113, 114, 197, 0.3)" : "rgba(255, 255, 255, 0.7)"); border: 2px solid #7172C5; border-radius: 8px; cursor: pointer; font-family: 'Libre Baskerville', serif;" @onclick='() => SetTab("articles")'>
-                    Articles
+                <button class="sidebar-menu-item @(currentTab == "articles" ? "active" : "")" @onclick='() => SetTab("articles")'>
+                    <span class="sidebar-menu-icon">📰</span>
+                    <span>Articles</span>
                 </button>
-                <button class="tab-btn @(currentTab == "voting" ? "active" : "")" style="padding: 10px 20px; background: @(currentTab == "voting" ? "rgba(113, 114, 197, 0.3)" : "rgba(255, 255, 255, 0.7)"); border: 2px solid #7172C5; border-radius: 8px; cursor: pointer; font-family: 'Libre Baskerville', serif;" @onclick='() => SetTab("voting")'>
-                    Votes
+                <button class="sidebar-menu-item @(currentTab == "voting" ? "active" : "")" @onclick='() => SetTab("voting")'>
+                    <span class="sidebar-menu-icon">🗳️</span>
+                    <span>Votes</span>
                 </button>
-                <button class="tab-btn @(currentTab == "reveal" ? "active" : "")" style="padding: 10px 20px; background: @(currentTab == "reveal" ? "rgba(113, 114, 197, 0.3)" : "rgba(255, 255, 255, 0.7)"); border: 2px solid #7172C5; border-radius: 8px; cursor: pointer; font-family: 'Libre Baskerville', serif;" @onclick='() => SetTab("reveal")'>
-                    Révéler
+                <button class="sidebar-menu-item @(currentTab == "reveal" ? "active" : "")" @onclick='() => SetTab("reveal")'>
+                    <span class="sidebar-menu-icon">🎭</span>
+                    <span>Révélations</span>
                 </button>
             </div>
 
+            <div class="sidebar-footer">
+                <button class="modern-btn btn-outline btn-full-width" @onclick="Logout">
+                    🚪 Déconnexion
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="dashboard-main">
+            <div class="dashboard-header">
+                <h1>Dashboard Administrateur</h1>
+                <p class="subtitle">Gérez l'événement Bridgerton en temps réel</p>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-title">Familles</div>
+                        <div class="stat-card-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                            👥
+                        </div>
+                    </div>
+                    <div class="stat-card-value">@(families?.Count ?? 0)</div>
+                    <div class="stat-card-label">Familles inscrites</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-title">Articles</div>
+                        <div class="stat-card-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                            📰
+                        </div>
+                    </div>
+                    <div class="stat-card-value">@(articles?.Count ?? 0)</div>
+                    <div class="stat-card-label">Publications Whistledown</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-title">Votes Actifs</div>
+                        <div class="stat-card-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                            🗳️
+                        </div>
+                    </div>
+                    <div class="stat-card-value">@(families?.Count(f => f.VotingEnabled) ?? 0)</div>
+                    <div class="stat-card-label">Familles peuvent voter</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-title">Révélations</div>
+                        <div class="stat-card-icon" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white;">
+                            🎭
+                        </div>
+                    </div>
+                    <div class="stat-card-value">@(families?.Count(f => f.Revealed) ?? 0)</div>
+                    <div class="stat-card-label">Whistledown révélées</div>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
             @if (currentTab == "scores")
             {
-                <div class="scores-tab" style="background: rgba(255, 255, 255, 0.7); padding: 30px; border-radius: 8px;">
-                    <h2 style="font-family: 'Libre Baskerville', serif; font-style: italic; text-align: center; margin-bottom: 30px;">Gestion des Scores</h2>
+                <div class="dashboard-content">
+                    <h2>📊 Gestion des Scores</h2>
                     
                     @if (families != null && gameScores != null)
                     {
-                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 40px;">
+                        <table class="modern-table">
                             <thead>
-                                <tr style="background: rgba(113, 114, 197, 0.2);">
-                                    <th style="padding: 15px; text-align: left;">Jeu</th>
+                                <tr>
+                                    <th>Jeu</th>
                                     @foreach (var family in families)
                                     {
-                                        <th style="padding: 15px; text-align: center;">@family.Name</th>
+                                        <th style="text-align: center;">@family.Name</th>
                                     }
                                 </tr>
                             </thead>
@@ -85,12 +153,12 @@
                                 @foreach (var gameScore in gameScores.Where(g => g.GameName != "Total"))
                                 {
                                     <tr>
-                                        <td style="padding: 12px 15px;">@gameScore.GameName</td>
+                                        <td style="font-weight: 600;">@gameScore.GameName</td>
                                         @foreach (var family in families)
                                         {
                                             var score = gameScore.FamilyScores.ContainsKey(family.Id) ? gameScore.FamilyScores[family.Id] : 0;
-                                            <td style="padding: 12px 15px; text-align: center;">
-                                                <input type="number" class="score-input" style="width: 80px; text-align: center;" value="@score" @onchange="e => UpdateScore(gameScore.GameName, family.Id, e.Value?.ToString())" />
+                                            <td style="text-align: center;">
+                                                <input type="number" class="score-input" value="@score" @onchange="e => UpdateScore(gameScore.GameName, family.Id, e.Value?.ToString())" />
                                             </td>
                                         }
                                     </tr>
@@ -98,14 +166,16 @@
                             </tbody>
                         </table>
 
-                        <h3 style="font-family: 'Libre Baskerville', serif; font-style: italic; margin: 30px 0 20px;">Pénalités Whistledown</h3>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                        <div class="section-header">
+                            <h3 class="section-title">⚠️ Pénalités Whistledown</h3>
+                        </div>
+                        <div class="penalty-grid">
                             @foreach (var family in families)
                             {
                                 var penalty = penalties.ContainsKey(family.Id) ? penalties[family.Id] : 0;
-                                <div style="display: flex; flex-direction: column; gap: 10px;">
-                                    <label style="font-family: 'Times New Roman', serif;">@family.Name</label>
-                                    <input type="number" class="score-input" style="width: 100%;" value="@penalty" @onchange="e => UpdatePenalty(family.Id, e.Value?.ToString())" />
+                                <div class="penalty-input-group">
+                                    <label>@family.Name</label>
+                                    <input type="number" value="@penalty" @onchange="e => UpdatePenalty(family.Id, e.Value?.ToString())" />
                                 </div>
                             }
                         </div>
@@ -114,44 +184,58 @@
             }
             else if (currentTab == "articles")
             {
-                <div class="articles-tab" style="background: rgba(255, 255, 255, 0.7); padding: 30px; border-radius: 8px;">
-                    <h2 style="font-family: 'Libre Baskerville', serif; font-style: italic; text-align: center; margin-bottom: 30px;">Gestion des Articles</h2>
+                <div class="dashboard-content">
+                    <h2>📰 Gestion des Articles Whistledown</h2>
                     
-                    @if (articles != null)
+                    @if (articles != null && articles.Any())
                     {
-                        <div style="display: flex; flex-direction: column; gap: 20px;">
-                            @foreach (var article in articles)
-                            {
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: rgba(113, 114, 197, 0.1); border-radius: 8px;">
-                                    <div style="flex: 1;">
-                                        <div style="font-weight: bold; margin-bottom: 5px;">@article.FamilyName</div>
-                                        <div style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">@article.PublishedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</div>
-                                        <div style="font-style: italic;">@article.Content.Substring(0, Math.Min(100, article.Content.Length))...</div>
+                        @foreach (var article in articles)
+                        {
+                            <div class="article-card">
+                                <div class="article-header">
+                                    <div class="article-meta">
+                                        <div class="article-family">@article.FamilyName</div>
+                                        <div class="article-date">📅 @article.PublishedAt.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")</div>
                                     </div>
-                                    <button class="delete-btn" style="min-width: 120px; padding: 10px 20px;" @onclick="() => DeleteArticle(article.Id)">
-                                        <span class="btn-text">Supprimer</span>
+                                    <button class="modern-btn btn-danger" @onclick="() => DeleteArticle(article.Id)">
+                                        🗑️ Supprimer
                                     </button>
                                 </div>
-                            }
+                                <div class="article-content">
+                                    @article.Content
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div style="text-align: center; padding: 60px 20px; color: #999;">
+                            <div style="font-size: 3rem; margin-bottom: 20px;">📭</div>
+                            <p style="font-size: 1.2rem;">Aucun article publié pour le moment</p>
                         </div>
                     }
                 </div>
             }
             else if (currentTab == "voting")
             {
-                <div class="voting-tab" style="background: rgba(255, 255, 255, 0.7); padding: 30px; border-radius: 8px;">
-                    <h2 style="font-family: 'Libre Baskerville', serif; font-style: italic; text-align: center; margin-bottom: 30px;">Activer les Votes</h2>
+                <div class="dashboard-content">
+                    <h2>🗳️ Activation des Votes</h2>
                     
                     @if (families != null)
                     {
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div class="cards-grid">
                             @foreach (var family in families)
                             {
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: rgba(113, 114, 197, 0.1); border-radius: 8px;">
-                                    <span style="font-family: 'Libre Baskerville', serif; font-size: 1.2rem;">@family.Name</span>
-                                    <label style="display: inline-flex; align-items: center; cursor: pointer;">
+                                <div class="info-card">
+                                    <div class="info-card-header">
+                                        <div class="info-card-title">@family.Name</div>
+                                        <span class="info-card-badge @(family.VotingEnabled ? "badge-success" : "badge-danger")">
+                                            @(family.VotingEnabled ? "ACTIF" : "INACTIF")
+                                        </span>
+                                    </div>
+                                    <label class="toggle-switch">
                                         <input type="checkbox" checked="@family.VotingEnabled" @onchange="e => ToggleVoting(family.Id, (bool)(e.Value ?? false))" />
-                                        <span style="margin-left: 10px;">@(family.VotingEnabled ? "Activé" : "Désactivé")</span>
+                                        <span>@(family.VotingEnabled ? "Vote autorisé" : "Vote désactivé")</span>
                                     </label>
                                 </div>
                             }
@@ -161,47 +245,46 @@
             }
             else if (currentTab == "reveal")
             {
-                <div class="reveal-tab" style="background: rgba(255, 255, 255, 0.7); padding: 30px; border-radius: 8px;">
-                    <h2 style="font-family: 'Libre Baskerville', serif; font-style: italic; text-align: center; margin-bottom: 30px;">Révéler Lady Whistledown</h2>
+                <div class="dashboard-content">
+                    <h2>🎭 Révélation Lady Whistledown</h2>
                     
                     @if (families != null)
                     {
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                        <div class="cards-grid">
                             @foreach (var family in families)
                             {
-                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; background: rgba(113, 114, 197, 0.1); border-radius: 8px;">
-                                    <span style="font-family: 'Libre Baskerville', serif; font-size: 1.2rem;">@family.Name</span>
-                                    @if (family.Revealed)
-                                    {
-                                        <span style="color: #26b050; font-weight: bold;">Révélé</span>
-                                    }
-                                    else
-                                    {
-                                        <button class="reveal-btn" style="min-width: 100px; padding: 8px 16px;" @onclick="() => RevealWhistledown(family.Id)">
-                                            <span class="btn-text" style="font-size: 0.9rem;">Révéler</span>
-                                        </button>
-                                    }
+                                <div class="info-card">
+                                    <div class="info-card-header">
+                                        <div class="info-card-title">@family.Name</div>
+                                        @if (family.Revealed)
+                                        {
+                                            <span class="info-card-badge badge-success">
+                                                <span class="status-indicator status-active"></span>
+                                                RÉVÉLÉ
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <button class="modern-btn btn-primary" @onclick="() => RevealWhistledown(family.Id)">
+                                                🎭 Révéler
+                                            </button>
+                                        }
+                                    </div>
                                 </div>
                             }
                         </div>
 
-                        <div style="text-align: center;">
-                            <button class="reveal-all-btn" @onclick="RevealAll">
-                                <span class="btn-text">Révéler Tout</span>
+                        <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 2px solid #e8ebef;">
+                            <button class="modern-btn btn-success" style="padding: 16px 40px; font-size: 1.1rem;" @onclick="RevealAll">
+                                🎉 Révéler Toutes les Familles
                             </button>
                         </div>
                     }
                 </div>
             }
-
-            <div style="text-align: center; margin-top: 40px;">
-                <button class="logout-btn" @onclick="Logout">
-                    <span class="btn-text">Déconnexion</span>
-                </button>
-            </div>
         </div>
-    }
-</main>
+    </div>
+}
 
 @code {
     private bool isAdmin = false;
