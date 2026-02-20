@@ -22,10 +22,24 @@ public class GameScoresController : ControllerBase
         return Ok(scores);
     }
 
+    [HttpPost]
+    public async Task<ActionResult> Create([FromBody] GameScore gameScore)
+    {
+        await _gameData.CreateGameScoreAsync(gameScore);
+        return Ok();
+    }
+
     [HttpPut]
     public async Task<ActionResult> Update([FromBody] GameScore gameScore)
     {
         await _gameData.UpdateGameScoreAsync(gameScore);
+        return Ok();
+    }
+
+    [HttpDelete("{gameName}")]
+    public async Task<ActionResult> Delete(string gameName)
+    {
+        await _gameData.DeleteGameScoreAsync(gameName);
         return Ok();
     }
 

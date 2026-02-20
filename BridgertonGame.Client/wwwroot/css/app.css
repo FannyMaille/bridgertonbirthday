@@ -931,7 +931,7 @@ host-image,
     white-space: nowrap;
 }
 
-/* Responsive pour section-divider */
+du /* Responsive pour section-divider */
 @media (max-width: 768px) {
     .section-divider {
         gap: 15px;

@@ -3,9 +3,11 @@
 @using BridgertonGame.Shared.Models
 @using BridgertonGame.Shared.DTOs
 @using System.Net.Http.Json
+@using Microsoft.JSInterop
 @inject ApiService ApiService
 @inject AuthService AuthService
 @inject HttpClient Http
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Admin Dashboard - The Bridgerton Game</PageTitle>
 
@@ -135,7 +137,12 @@ else
             @if (currentTab == "scores")
             {
                 <div class="dashboard-content">
-                    <h2>📊 Gestion des Scores</h2>
+                    <div class="section-header">
+                        <h2 style="margin: 0;">📊 Gestion des Scores</h2>
+                        <button class="modern-btn btn-primary" @onclick="AddNewGame">
+                            ➕ Ajouter un jeu
+                        </button>
+                    </div>
                     
                     @if (families != null && gameScores != null)
                     {
@@ -147,13 +154,31 @@ else
                                     {
                                         <th style="text-align: center;">@family.Name</th>
                                     }
+                                    <th style="text-align: center;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var gameScore in gameScores.Where(g => g.GameName != "Total"))
+                                @foreach (var gameScore in gameScores.Where(g => g.GameName != "Total" && g.GameName != "Pénalités Whistledown"))
                                 {
                                     <tr>
-                                        <td style="font-weight: 600;">@gameScore.GameName</td>
+                                        <td style="font-weight: 600;">
+                                            @if (editingGameId == gameScore.GameName)
+                                            {
+                                                <div style="display: flex; gap: 8px, align-items: center;">
+                                                    <input type="text" class="score-input" style="width: 200px; text-align: left;" @bind="editingGameName" />
+                                                    <button class="icon-btn btn-success" @onclick="() => SaveGameName(gameScore.GameName)" title="Enregistrer">
+                                                        ✓
+                                                    </button>
+                                                    <button class="icon-btn btn-danger" @onclick="CancelEditGameName" title="Annuler">
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span>@gameScore.GameName</span>
+                                            }
+                                        </td>
                                         @foreach (var family in families)
                                         {
                                             var score = gameScore.FamilyScores.ContainsKey(family.Id) ? gameScore.FamilyScores[family.Id] : 0;
@@ -161,21 +186,67 @@ else
                                                 <input type="number" class="score-input" value="@score" @onchange="e => UpdateScore(gameScore.GameName, family.Id, e.Value?.ToString())" />
                                             </td>
                                         }
+                                        <td style="text-align: center;">
+                                            <div style="display: flex; gap: 8px; justify-content: center;">
+                                                @if (editingGameId != gameScore.GameName)
+                                                {
+                                                    <button class="icon-btn btn-primary" @onclick="() => StartEditGameName(gameScore.GameName)" title="Modifier le nom">
+                                                        ✏️
+                                                    </button>
+                                                }
+                                                <button class="icon-btn btn-danger" @onclick="() => DeleteGame(gameScore.GameName)" title="Supprimer le jeu">
+                                                    🗑️
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
                         </table>
 
-                        <div class="section-header">
+                        <div class="section-header" style="margin-top: 40px;">
                             <h3 class="section-title">⚠️ Pénalités Whistledown</h3>
+                        </div>
+                        <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                            <p style="margin: 0 0 10px 0; color: #856404; font-size: 0.95rem;">
+                                <strong>ℹ️ Système automatique de points :</strong>
+                            </p>
+                            <ul style="margin: 0; padding-left: 20px; color: #856404; font-size: 0.95rem;">
+                                <li style="margin-bottom: 5px;">
+                                    <strong>Pénalité famille :</strong> Chaque article publié ajoute <strong>-10 points</strong> à la famille
+                                </li>
+                                <li>
+                                    <strong>Récompense Lady Whistledown :</strong> Chaque article publié ajoute <strong>+10 points personnels</strong> à Lady Whistledown
+                                </li>
+                            </ul>
+                            <p style="margin: 10px 0 0 0; color: #856404; font-size: 0.9rem; font-style: italic;">
+                                Vous pouvez ajuster manuellement les pénalités ci-dessous si nécessaire. Les points personnels des joueurs se gèrent dans la page "Classement".
+                            </p>
                         </div>
                         <div class="penalty-grid">
                             @foreach (var family in families)
                             {
                                 var penalty = penalties.ContainsKey(family.Id) ? penalties[family.Id] : 0;
+                                var articleCount = articles?.Count(a => a.FamilyId == family.Id) ?? 0;
+                                var ladyWhistledown = family.LadyWhistledownId != null ? players?.FirstOrDefault(p => p.Id == family.LadyWhistledownId) : null;
+                                
                                 <div class="penalty-input-group">
                                     <label>@family.Name</label>
-                                    <input type="number" value="@penalty" @onchange="e => UpdatePenalty(family.Id, e.Value?.ToString())" />
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <input type="number" value="@penalty" @onchange="e => UpdatePenalty(family.Id, e.Value?.ToString())" />
+                                        <small style="color: #c62828; font-weight: 600;">
+                                            Famille: -@penalty pts
+                                        </small>
+                                        @if (ladyWhistledown != null)
+                                        {
+                                            <small style="color: #2e7d32; font-weight: 600;">
+                                                @ladyWhistledown.Name: +@penalty pts
+                                            </small>
+                                        }
+                                        <small style="color: #666; margin-top: 5px;">
+                                            @articleCount article(s) publié(s)
+                                        </small>
+                                    </div>
                                 </div>
                             }
                         </div>
@@ -296,7 +367,11 @@ else
     private List<Family>? families;
     private List<GameScore>? gameScores;
     private List<Article>? articles;
+    private List<Player>? players;
     private Dictionary<string, int> penalties = new();
+
+    private string? editingGameId = null;
+    private string editingGameName = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -312,6 +387,7 @@ else
         families = await ApiService.GetAllFamiliesAsync();
         gameScores = await ApiService.GetAllGameScoresAsync();
         articles = await ApiService.GetAllArticlesAsync();
+        players = await ApiService.GetAllPlayersAsync();
         penalties = await ApiService.GetPenaltiesAsync();
     }
 
@@ -379,6 +455,76 @@ else
         {
             penalties[familyId] = penalty;
             await Http.PutAsJsonAsync($"api/gamescores/penalties/{familyId}", penalty);
+        }
+    }
+
+    private void StartEditGameName(string gameName)
+    {
+        editingGameId = gameName;
+        editingGameName = gameName;
+    }
+
+    private void CancelEditGameName()
+    {
+        editingGameId = null;
+        editingGameName = "";
+    }
+
+    private async Task SaveGameName(string oldGameName)
+    {
+        if (string.IsNullOrWhiteSpace(editingGameName) || gameScores == null)
+        {
+            CancelEditGameName();
+            return;
+        }
+
+        var game = gameScores.FirstOrDefault(g => g.GameName == oldGameName);
+        if (game != null && oldGameName != editingGameName)
+        {
+            // Delete old game
+            await Http.DeleteAsync($"api/gamescores/{Uri.EscapeDataString(oldGameName)}");
+            
+            // Create new game with new name
+            game.GameName = editingGameName;
+            await Http.PostAsJsonAsync("api/gamescores", game);
+            
+            await LoadData();
+        }
+        
+        CancelEditGameName();
+    }
+
+    private async Task AddNewGame()
+    {
+        if (families == null || gameScores == null) return;
+
+        var newGameName = $"Nouveau Jeu {gameScores.Count(g => g.GameName != "Total" && g.GameName != "Pénalités Whistledown") + 1}";
+        
+        var newGame = new GameScore
+        {
+            GameName = newGameName,
+            FamilyScores = new Dictionary<string, int>()
+        };
+
+        foreach (var family in families)
+        {
+            newGame.FamilyScores[family.Id] = 0;
+        }
+
+        await Http.PostAsJsonAsync("api/gamescores", newGame);
+        await LoadData();
+    }
+
+    private async Task DeleteGame(string gameName)
+    {
+        if (gameScores == null) return;
+
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Êtes-vous sûr de vouloir supprimer le jeu '{gameName}' ?\n\nCette action est irréversible.");
+        
+        if (confirmed)
+        {
+            await Http.DeleteAsync($"api/gamescores/{Uri.EscapeDataString(gameName)}");
+            await LoadData();
         }
     }
 

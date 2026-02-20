@@ -150,6 +150,22 @@ public class DatabaseGameDataService
             cooldown.LastPublicationTime = DateTime.UtcNow;
         }
 
+        // Add automatic penalty of 10 points for publishing (family loses points)
+        var penaltyEntity = await _context.WhistledownPenalties.FindAsync(familyId);
+        if (penaltyEntity != null)
+        {
+            penaltyEntity.Penalty += 10; // Add 10 points to existing penalty
+        }
+        else
+        {
+            var newPenalty = new WhistledownPenalty
+            {
+                FamilyId = familyId,
+                Penalty = 10
+            };
+            _context.WhistledownPenalties.Add(newPenalty);
+        }
+
         await _context.SaveChangesAsync();
         return article;
     }
@@ -159,6 +175,19 @@ public class DatabaseGameDataService
         var article = await _context.Articles.FindAsync(articleId);
         if (article != null)
         {
+            // Remove penalty associated with this article (10 points from family)
+            var penaltyEntity = await _context.WhistledownPenalties.FindAsync(article.FamilyId);
+            if (penaltyEntity != null && penaltyEntity.Penalty >= 10)
+            {
+                penaltyEntity.Penalty -= 10;
+                
+                // If penalty reaches 0, remove the entity
+                if (penaltyEntity.Penalty == 0)
+                {
+                    _context.WhistledownPenalties.Remove(penaltyEntity);
+                }
+            }
+
             _context.Articles.Remove(article);
             await _context.SaveChangesAsync();
         }
@@ -177,7 +206,72 @@ public class DatabaseGameDataService
                 GameName = g.Key,
                 FamilyScores = g.ToDictionary(e => e.FamilyId, e => e.Score)
             })
+            .Where(gs => gs.GameName != "Total")
             .ToList();
+
+        // Calculate totals and penalties
+        if (gameScores.Any())
+        {
+            var familyIds = gameScores.First().FamilyScores.Keys.ToList();
+            var totalScores = new Dictionary<string, int>();
+            var penaltyScores = new Dictionary<string, int>();
+
+            // Calculate subtotal (without penalties)
+            foreach (var familyId in familyIds)
+            {
+                var subtotal = gameScores.Sum(gs => gs.FamilyScores.ContainsKey(familyId) ? gs.FamilyScores[familyId] : 0);
+                totalScores[familyId] = subtotal;
+                penaltyScores[familyId] = 0;
+            }
+
+            // Get and apply penalties
+            var penalties = await _context.WhistledownPenalties.ToListAsync();
+            foreach (var penalty in penalties)
+            {
+                if (penaltyScores.ContainsKey(penalty.FamilyId))
+                {
+                    penaltyScores[penalty.FamilyId] = -penalty.Penalty; // Negative value for display
+                    totalScores[penalty.FamilyId] -= penalty.Penalty;
+                }
+            }
+
+            // Add Pénalités Whistledown row (only if there are penalties)
+            if (penalties.Any(p => p.Penalty != 0))
+            {
+                gameScores.Add(new GameScore
+                {
+                    GameName = "Pénalités Whistledown",
+                    FamilyScores = penaltyScores
+                });
+            }
+
+            // Add Total row
+            gameScores.Add(new GameScore
+            {
+                GameName = "Total",
+                FamilyScores = totalScores
+            });
+
+            // Update family points in database
+            foreach (var familyId in familyIds)
+            {
+                var family = await _context.Families.FindAsync(familyId);
+                if (family != null && totalScores.ContainsKey(familyId))
+                {
+                    family.Points = totalScores[familyId];
+                }
+            }
+
+            // Calculate and update ranks
+            var rankedFamilies = await _context.Families.ToListAsync();
+            var sortedFamilies = rankedFamilies.OrderByDescending(f => f.Points).ToList();
+            for (int i = 0; i < sortedFamilies.Count; i++)
+            {
+                sortedFamilies[i].Rank = i + 1;
+            }
+
+            await _context.SaveChangesAsync();
+        }
 
         return gameScores;
     }
@@ -211,6 +305,34 @@ public class DatabaseGameDataService
         foreach (var familyScore in gameScore.FamilyScores)
         {
             await UpdateGameScoreAsync(gameScore.GameName, familyScore.Key, familyScore.Value);
+        }
+    }
+
+    public async Task CreateGameScoreAsync(GameScore gameScore)
+    {
+        foreach (var familyScore in gameScore.FamilyScores)
+        {
+            var scoreEntity = new GameScoreEntity
+            {
+                GameName = gameScore.GameName,
+                FamilyId = familyScore.Key,
+                Score = familyScore.Value
+            };
+            _context.GameScores.Add(scoreEntity);
+        }
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task DeleteGameScoreAsync(string gameName)
+    {
+        var scoreEntities = await _context.GameScores
+            .Where(g => g.GameName == gameName)
+            .ToListAsync();
+
+        if (scoreEntities.Any())
+        {
+            _context.GameScores.RemoveRange(scoreEntities);
+            await _context.SaveChangesAsync();
         }
     }
 

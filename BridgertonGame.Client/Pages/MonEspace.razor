@@ -149,6 +149,19 @@
                             <h3>Publier une Chronique</h3>
                         </div>
                         <div class="card-body">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                                <div class="warning-notice" style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 4px;">
+                                    <strong>⚠️ Famille :</strong> Chaque publication = <strong>-10 points</strong>
+                                </div>
+                                <div class="success-notice" style="background: #d4edda; border-left: 4px solid #28a745; padding: 12px; border-radius: 4px;">
+                                    <strong>✨ Vous :</strong> Chaque publication = <strong>+10 points</strong>
+                                </div>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; margin-bottom: 15px;">
+                                <div style="font-size: 0.9rem; opacity: 0.9;">Vos points personnels</div>
+                                <div style="font-size: 2.5rem; font-weight: bold; font-family: 'Libre Baskerville', serif;">@playerPoints pts</div>
+                                <div style="font-size: 0.85rem; opacity: 0.9;">Lady Whistledown</div>
+                            </div>
                             <div class="editor-wrapper">
                                 <textarea class="modern-textarea" 
                                           maxlength="300" 
@@ -213,6 +226,7 @@
     private System.Threading.Timer? cooldownTimer;
     private bool showModal = false;
     private string selectedImage = "";
+    private int playerPoints = 0; // Points basés sur les pénalités
 
     protected override async Task OnInitializedAsync()
     {
@@ -230,8 +244,11 @@
         currentFamily = await ApiService.GetFamilyByIdAsync(currentPlayer.FamilyId);
         familyMembers = await ApiService.GetPlayersByFamilyAsync(currentPlayer.FamilyId);
         
+        // Charger les points de Lady Whistledown depuis les pénalités
         if (currentPlayer.IsLadyWhistledown)
         {
+            var penalties = await ApiService.GetPenaltiesAsync();
+            playerPoints = penalties.ContainsKey(currentPlayer.FamilyId) ? penalties[currentPlayer.FamilyId] : 0;
             await CheckCooldown();
         }
     }
@@ -328,6 +345,14 @@
                 articleContent = "";
                 charCount = 0;
                 await CheckCooldown();
+                
+                // Recharger les pénalités pour obtenir les points mis à jour
+                if (currentPlayer?.IsLadyWhistledown == true)
+                {
+                    var penalties = await ApiService.GetPenaltiesAsync();
+                    playerPoints = penalties.ContainsKey(currentPlayer.FamilyId) ? penalties[currentPlayer.FamilyId] : 0;
+                }
+                
                 errorMessage = "Votre article a été publié !";
             }
         }

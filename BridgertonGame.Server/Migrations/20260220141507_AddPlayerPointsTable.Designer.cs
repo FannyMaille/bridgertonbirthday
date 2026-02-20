@@ -4,6 +4,7 @@ using BridgertonGame.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BridgertonGame.Server.Migrations
 {
     [DbContext(typeof(BridgertonDbContext))]
-    partial class BridgertonDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260220141507_AddPlayerPointsTable")]
+    partial class AddPlayerPointsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -252,6 +255,19 @@ namespace BridgertonGame.Server.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BridgertonGame.Server.Data.Entities.PlayerPoints", b =>
+                {
+                    b.Property<string>("PlayerId")
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
+                    b.HasKey("PlayerId");
+
+                    b.ToTable("PlayerPoints");
+                });
+
             modelBuilder.Entity("BridgertonGame.Server.Data.Entities.PublicationCooldown", b =>
                 {
                     b.Property<string>("FamilyId")
@@ -340,7 +356,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "La notation que la personne va écrire",
                             FamilyId = "hastings",
                             FamilyName = "Hastings",
-                            PublishedAt = new DateTime(2026, 2, 20, 4, 49, 14, 425, DateTimeKind.Utc).AddTicks(7152),
+                            PublishedAt = new DateTime(2026, 2, 20, 4, 15, 7, 272, DateTimeKind.Utc).AddTicks(311),
                             Title = "Chers amis lecteurs,"
                         },
                         new
@@ -349,7 +365,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "Un événement des plus intéressants s'est déroulé lors du dernier bal...",
                             FamilyId = "bridgerton",
                             FamilyName = "Bridgerton",
-                            PublishedAt = new DateTime(2026, 2, 20, 6, 49, 14, 425, DateTimeKind.Utc).AddTicks(7152),
+                            PublishedAt = new DateTime(2026, 2, 20, 6, 15, 7, 272, DateTimeKind.Utc).AddTicks(311),
                             Title = "Chers amis lecteurs,"
                         },
                         new
@@ -358,7 +374,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "Les rumeurs circulent à propos d'une certaine famille...",
                             FamilyId = "featherington",
                             FamilyName = "Featherington",
-                            PublishedAt = new DateTime(2026, 2, 20, 8, 49, 14, 425, DateTimeKind.Utc).AddTicks(7152),
+                            PublishedAt = new DateTime(2026, 2, 20, 8, 15, 7, 272, DateTimeKind.Utc).AddTicks(311),
                             Title = "Chers amis lecteurs,"
                         },
                         new
@@ -367,7 +383,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "Les secrets de la haute société ne me sont pas étrangers...",
                             FamilyId = "hastings",
                             FamilyName = "Hastings",
-                            PublishedAt = new DateTime(2026, 2, 20, 10, 49, 14, 425, DateTimeKind.Utc).AddTicks(7152),
+                            PublishedAt = new DateTime(2026, 2, 20, 10, 15, 7, 272, DateTimeKind.Utc).AddTicks(311),
                             Title = "Chers amis lecteurs,"
                         },
                         new
@@ -376,7 +392,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "Une nouvelle intrigue secoue les salons londoniens...",
                             FamilyId = "danbury",
                             FamilyName = "Danbury",
-                            PublishedAt = new DateTime(2026, 2, 20, 12, 49, 14, 425, DateTimeKind.Utc).AddTicks(7152),
+                            PublishedAt = new DateTime(2026, 2, 20, 12, 15, 7, 272, DateTimeKind.Utc).AddTicks(311),
                             Title = "Chers amis lecteurs,"
                         });
                 });
@@ -485,6 +501,9 @@ namespace BridgertonGame.Server.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<int>("Points")
+                        .HasColumnType("int");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("longtext");
@@ -506,6 +525,7 @@ namespace BridgertonGame.Server.Migrations
                             ImageUrl = "images/AdminAvatar.png",
                             IsLadyWhistledown = true,
                             Name = "Célia Hastings",
+                            Points = 0,
                             Role = "Lady Whistledown",
                             Title = "DUCHESSE"
                         },
@@ -517,6 +537,7 @@ namespace BridgertonGame.Server.Migrations
                             ImageUrl = "images/AdminAvatar.png",
                             IsLadyWhistledown = false,
                             Name = "Fanny Hastings",
+                            Points = 0,
                             Role = "Invitée",
                             Title = "DUCHESSE"
                         },
@@ -528,6 +549,7 @@ namespace BridgertonGame.Server.Migrations
                             ImageUrl = "images/AdminAvatar.png",
                             IsLadyWhistledown = false,
                             Name = "Hugo Hastings",
+                            Points = 0,
                             Role = "Invité",
                             Title = "DUC"
                         },
@@ -539,6 +561,7 @@ namespace BridgertonGame.Server.Migrations
                             ImageUrl = "images/AdminAvatar.png",
                             IsLadyWhistledown = true,
                             Name = "Daphné Bridgerton",
+                            Points = 0,
                             Role = "Lady Whistledown",
                             Title = "DUCHESSE"
                         },
@@ -550,6 +573,7 @@ namespace BridgertonGame.Server.Migrations
                             ImageUrl = "images/AdminAvatar.png",
                             IsLadyWhistledown = false,
                             Name = "Simon Bridgerton",
+                            Points = 0,
                             Role = "Invité",
                             Title = "DUC"
                         },
@@ -561,6 +585,7 @@ namespace BridgertonGame.Server.Migrations
                             ImageUrl = "images/AdminAvatar.png",
                             IsLadyWhistledown = false,
                             Name = "Eloïse Bridgerton",
+                            Points = 0,
                             Role = "Invitée",
                             Title = "LADY"
                         },
@@ -572,6 +597,7 @@ namespace BridgertonGame.Server.Migrations
                             ImageUrl = "images/AdminAvatar.png",
                             IsLadyWhistledown = true,
                             Name = "Penelope Featherington",
+                            Points = 0,
                             Role = "Lady Whistledown",
                             Title = "LADY"
                         },
@@ -583,6 +609,7 @@ namespace BridgertonGame.Server.Migrations
                             ImageUrl = "images/AdminAvatar.png",
                             IsLadyWhistledown = false,
                             Name = "Portia Featherington",
+                            Points = 0,
                             Role = "Invitée",
                             Title = "LADY"
                         },
@@ -594,6 +621,7 @@ namespace BridgertonGame.Server.Migrations
                             ImageUrl = "images/AdminAvatar.png",
                             IsLadyWhistledown = false,
                             Name = "Agatha Danbury",
+                            Points = 0,
                             Role = "Maîtresse de soirée",
                             Title = "LADY"
                         },
@@ -605,6 +633,7 @@ namespace BridgertonGame.Server.Migrations
                             ImageUrl = "images/AdminAvatar.png",
                             IsLadyWhistledown = false,
                             Name = "Will Danbury",
+                            Points = 0,
                             Role = "Invité",
                             Title = "LORD"
                         },
@@ -616,6 +645,7 @@ namespace BridgertonGame.Server.Migrations
                             ImageUrl = "images/AdminAvatar.png",
                             IsLadyWhistledown = true,
                             Name = "Kate Sharma",
+                            Points = 0,
                             Role = "Lady Whistledown",
                             Title = "LADY"
                         },
@@ -627,6 +657,7 @@ namespace BridgertonGame.Server.Migrations
                             ImageUrl = "images/AdminAvatar.png",
                             IsLadyWhistledown = false,
                             Name = "Edwina Sharma",
+                            Points = 0,
                             Role = "Invitée",
                             Title = "LADY"
                         });
