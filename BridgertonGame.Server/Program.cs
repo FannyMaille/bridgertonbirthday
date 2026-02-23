@@ -12,8 +12,32 @@ builder.Services.AddSwaggerGen();
 
 // Add Database - MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<BridgertonDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+// Remplacer les placeholders dans la connection string
+if (!string.IsNullOrEmpty(connectionString))
+{
+    connectionString = connectionString
+        .Replace("${DB_HOST}", Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost")
+        .Replace("${DB_PORT}", Environment.GetEnvironmentVariable("DB_PORT") ?? "3306")
+        .Replace("${DB_NAME}", Environment.GetEnvironmentVariable("DB_NAME") ?? "reveensacados")
+        .Replace("${DB_USER}", Environment.GetEnvironmentVariable("DB_USER") ?? "root")
+        .Replace("${DB_PASSWORD}", Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "");
+
+    // S'assurer que la connection string contient les paramètres UTF-8
+    if (!connectionString.Contains("Charset=") && !connectionString.Contains("charset="))
+    {
+        connectionString += ";Charset=utf8mb4;";
+    }
+
+    Console.WriteLine(Environment.GetEnvironmentVariable("DB_HOST"));
+    Console.WriteLine(Environment.GetEnvironmentVariable("DB_PORT"));
+    Console.WriteLine(Environment.GetEnvironmentVariable("DB_NAME"));
+    Console.WriteLine(Environment.GetEnvironmentVariable("DB_USER"));
+    Console.WriteLine(Environment.GetEnvironmentVariable("DB_PASSWORD"));
+    Console.WriteLine(connectionString);
+
+    builder.Services.AddDbContext<BridgertonDbContext>(options =>
+        options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+}
 
 // Replace GameDataService with DatabaseGameDataService
 builder.Services.AddScoped<DatabaseGameDataService>();
