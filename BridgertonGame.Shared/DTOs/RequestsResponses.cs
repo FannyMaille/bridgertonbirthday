@@ -47,3 +47,8 @@ public class VoteRequest
     public string FamilyId { get; set; } = string.Empty;
     public string PlayerId { get; set; } = string.Empty;
 }
+
+public class SetWhistledownRequest
+{
+    public string? PlayerId { get; set; }
+}

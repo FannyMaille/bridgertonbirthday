@@ -46,7 +46,15 @@ public class ApiService
 
     public async Task<Family?> GetFamilyByIdAsync(string id)
     {
-        return await _httpClient.GetFromJsonAsync<Family>($"api/families/{id}");
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<Family>($"api/families/{id}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur lors du chargement de la famille {id}: {ex.Message}");
+            return null;
+        }
     }
 
     public async Task<List<Article>> GetAllArticlesAsync()

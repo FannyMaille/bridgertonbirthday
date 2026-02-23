@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using BridgertonGame.Shared.DTOs;
+using BridgertonGame.Server.Services;
 
 namespace BridgertonGame.Server.Controllers;
 
@@ -7,13 +8,19 @@ namespace BridgertonGame.Server.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private const string AdminUsername = "admin";
-    private const string AdminPassword = "bridgerton2024";
+    private readonly DatabaseGameDataService _gameData;
+
+    public AuthController(DatabaseGameDataService gameData)
+    {
+        _gameData = gameData;
+    }
 
     [HttpPost("admin")]
-    public ActionResult<AdminLoginResponse> AdminLogin([FromBody] AdminLoginRequest request)
+    public async Task<ActionResult<AdminLoginResponse>> AdminLogin([FromBody] AdminLoginRequest request)
     {
-        if (request.Username == AdminUsername && request.Password == AdminPassword)
+        var isValid = await _gameData.ValidateAdminAsync(request.Username, request.Password);
+        
+        if (isValid)
         {
             return Ok(new AdminLoginResponse
             {

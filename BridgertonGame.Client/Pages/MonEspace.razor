@@ -71,7 +71,33 @@
                 </div>
             </div>
 
-            @if (currentFamily != null)
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div style="background: #fee; color: #c33; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;">
+                    <strong>⚠️ Erreur:</strong> @errorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div style="background: #d4edda; color: #155724; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;">
+                    <strong>✅ Succès:</strong> @successMessage
+                </div>
+            }
+
+            @if (currentPlayer.Role == "Maîtresse de maison")
+            {
+                <!-- Message spécial pour la Maîtresse de maison -->
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px; border-radius: 15px; text-align: center; margin: 30px 0;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">👑</div>
+                    <h2 style="font-family: 'Libre Baskerville', serif; font-size: 2rem; margin-bottom: 15px;">Hôte du Bal</h2>
+                    <p style="font-size: 1.2rem; opacity: 0.9;">
+                        Bienvenue, @currentPlayer.Name !<br/>
+                        Vous êtes l'hôte de cet événement prestigieux.
+                    </p>
+                </div>
+            }
+            else if (currentFamily != null)
             {
                 <!-- Stats Cards -->
                 <div class="stats-grid">
@@ -149,6 +175,19 @@
                             <h3>Publier une Chronique</h3>
                         </div>
                         <div class="card-body">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                                <div class="warning-notice" style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 4px;">
+                                    <strong>⚠️ Famille :</strong> Chaque publication = <strong>-10 points</strong>
+                                </div>
+                                <div class="success-notice" style="background: #d4edda; border-left: 4px solid #28a745; padding: 12px; border-radius: 4px;">
+                                    <strong>✨ Vous :</strong> Chaque publication = <strong>+10 points</strong>
+                                </div>
+                            </div>
+                            <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; margin-bottom: 15px;">
+                                <div style="font-size: 0.9rem; opacity: 0.9;">Vos points personnels</div>
+                                <div style="font-size: 2.5rem; font-weight: bold; font-family: 'Libre Baskerville', serif;">@playerPoints pts</div>
+                                <div style="font-size: 0.85rem; opacity: 0.9;">Lady Whistledown</div>
+                            </div>
                             <div class="editor-wrapper">
                                 <textarea class="modern-textarea" 
                                           maxlength="300" 
@@ -205,6 +244,7 @@
     private List<Player> familyMembers = new();
     private string playerCode = "";
     private string errorMessage = "";
+    private string successMessage = "";
     private bool showRole = false;
     private string selectedMemberId = "";
     private string articleContent = "";
@@ -213,12 +253,21 @@
     private System.Threading.Timer? cooldownTimer;
     private bool showModal = false;
     private string selectedImage = "";
+    private int playerPoints = 0; // Points basés sur les pénalités
 
     protected override async Task OnInitializedAsync()
     {
         currentPlayer = await AuthService.GetCurrentPlayerAsync();
         if (currentPlayer != null)
         {
+            // Recharger les données fraîches depuis la base de données
+            var freshPlayer = await ApiService.GetPlayerByCodeAsync(currentPlayer.Code);
+            if (freshPlayer != null)
+            {
+                currentPlayer = freshPlayer;
+                await AuthService.SetCurrentPlayerAsync(freshPlayer);
+            }
+            
             await LoadPlayerData();
         }
     }
@@ -227,18 +276,44 @@
     {
         if (currentPlayer == null) return;
 
-        currentFamily = await ApiService.GetFamilyByIdAsync(currentPlayer.FamilyId);
-        familyMembers = await ApiService.GetPlayersByFamilyAsync(currentPlayer.FamilyId);
-        
-        if (currentPlayer.IsLadyWhistledown)
+        try
         {
-            await CheckCooldown();
+            // Si c'est une Maîtresse de maison, elle n'a pas de famille
+            if (currentPlayer.Role == "Maîtresse de maison")
+            {
+                // Pas besoin de charger la famille ni les membres
+                return;
+            }
+            
+            currentFamily = await ApiService.GetFamilyByIdAsync(currentPlayer.FamilyId);
+            
+            if (currentFamily == null)
+            {
+                errorMessage = "Impossible de charger les données de votre famille. Veuillez vérifier que le serveur est démarré.";
+                return;
+            }
+            
+            familyMembers = await ApiService.GetPlayersByFamilyAsync(currentPlayer.FamilyId);
+            
+            // Charger les points de Lady Whistledown depuis les pénalités
+            if (currentPlayer.IsLadyWhistledown)
+            {
+                var penalties = await ApiService.GetPenaltiesAsync();
+                playerPoints = penalties.ContainsKey(currentPlayer.FamilyId) ? penalties[currentPlayer.FamilyId] : 0;
+                await CheckCooldown();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Erreur de connexion au serveur: {ex.Message}";
+            Console.WriteLine($"Erreur LoadPlayerData: {ex}");
         }
     }
 
     private async Task ValidateCode()
     {
         errorMessage = "";
+        successMessage = "";
         if (string.IsNullOrWhiteSpace(playerCode))
         {
             errorMessage = "Veuillez entrer un code";
@@ -287,13 +362,17 @@
 
         try
         {
+            errorMessage = "";
+            successMessage = "";
             var request = new VoteRequest { FamilyId = currentFamily.Id, PlayerId = selectedMemberId };
             await Http.PostAsJsonAsync($"api/families/{currentFamily.Id}/vote", request);
-            errorMessage = "Votre vote a été enregistré !";
+            successMessage = "Votre vote a été enregistré !";
+            _ = ClearMessagesAfterDelay();
         }
         catch
         {
             errorMessage = "Erreur lors de l'enregistrement du vote.";
+            _ = ClearMessagesAfterDelay();
         }
     }
 
@@ -315,6 +394,8 @@
 
         try
         {
+            errorMessage = "";
+            successMessage = "";
             var request = new PublishArticleRequest
             {
                 Title = "Chers amis lecteurs,",
@@ -328,12 +409,22 @@
                 articleContent = "";
                 charCount = 0;
                 await CheckCooldown();
-                errorMessage = "Votre article a été publié !";
+                
+                // Recharger les pénalités pour obtenir les points mis à jour
+                if (currentPlayer?.IsLadyWhistledown == true)
+                {
+                    var penalties = await ApiService.GetPenaltiesAsync();
+                    playerPoints = penalties.ContainsKey(currentPlayer.FamilyId) ? penalties[currentPlayer.FamilyId] : 0;
+                }
+                
+                successMessage = "Votre article a été publié !";
+                _ = ClearMessagesAfterDelay();
             }
         }
         catch
         {
             errorMessage = "Erreur lors de la publication.";
+            _ = ClearMessagesAfterDelay();
         }
     }
 
@@ -408,7 +499,16 @@
         articleContent = "";
         playerCode = "";
         errorMessage = "";
+        successMessage = "";
         cooldownTimer?.Dispose();
+    }
+
+    private async Task ClearMessagesAfterDelay()
+    {
+        await Task.Delay(5000); // 5 secondes
+        errorMessage = "";
+        successMessage = "";
+        StateHasChanged();
     }
 
     public void Dispose()

@@ -2652,3 +2652,98 @@ code {
         font-size: 0.95rem;
     }
 }
+
+/* Lady Whistledown Ranking Styles */
+.whistledown-rank-first {
+    background: linear-gradient(135deg, 
+        rgba(255, 215, 0, 0.08) 0%, 
+        rgba(255, 235, 100, 0.08) 50%,
+        rgba(255, 255, 255, 0.95) 100%);
+    border: 3px solid #FFD700 !important;
+    box-shadow: 
+        0 8px 25px rgba(255, 215, 0, 0.3),
+        0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.whistledown-rank-first:hover {
+    transform: translateY(-8px) scale(1.03) !important;
+    box-shadow: 
+        0 15px 40px rgba(255, 215, 0, 0.4),
+        0 6px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+.whistledown-rank-second {
+    background: linear-gradient(135deg, 
+        rgba(192, 192, 192, 0.08) 0%, 
+        rgba(220, 220, 220, 0.08) 50%,
+        rgba(255, 255, 255, 0.95) 100%);
+    border: 2px solid #C0C0C0 !important;
+}
+
+.whistledown-rank-third {
+    background: linear-gradient(135deg, 
+        rgba(205, 127, 50, 0.08) 0%, 
+        rgba(225, 147, 70, 0.08) 50%,
+        rgba(255, 255, 255, 0.95) 100%);
+    border: 2px solid #CD7F32 !important;
+}
+
+.rank-badge-whistledown {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 12px;
+    font-family: 'Libre Baskerville', serif;
+    font-weight: bold;
+    font-size: 1rem;
+    line-height: 1;
+    border: 2px solid;
+    transition: all 0.3s ease;
+}
+
+.rank-badge-gold {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2) 0%, rgba(255, 235, 100, 0.2) 100%);
+    border-color: #FFD700;
+    color: #b8860b;
+}
+
+.rank-badge-silver {
+    background: linear-gradient(135deg, rgba(192, 192, 192, 0.2) 0%, rgba(220, 220, 220, 0.2) 100%);
+    border-color: #C0C0C0;
+    color: #666;
+}
+
+.rank-badge-bronze {
+    background: linear-gradient(135deg, rgba(205, 127, 50, 0.2) 0%, rgba(225, 147, 70, 0.2) 100%);
+    border-color: #CD7F32;
+    color: #8b5a2b;
+}
+
+.rank-badge-default {
+    background: linear-gradient(135deg, rgba(113, 114, 197, 0.15) 0%, rgba(147, 148, 213, 0.15) 100%);
+    border-color: rgba(113, 114, 197, 0.3);
+    color: #4a4a9e;
+}
+
+.rank-badge-whistledown .rank-number {
+    font-size: 1rem;
+    padding: 0;
+    background: none;
+    border: none;
+}
+
+/* Responsive pour les badges de rang Whistledown */
+@media (max-width: 768px) {
+    .rank-badge-whistledown {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .rank-badge-whistledown {
+        padding: 5px 10px;
+        font-size: 0.85rem;
+    }
+}
