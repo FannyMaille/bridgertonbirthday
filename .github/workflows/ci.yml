@@ -90,8 +90,7 @@ jobs:
             --name ${{ env.CONTAINER_NAME }} \
             --user 1000:1000 \
             --restart unless-stopped \
-            -p 9080:9080 \
-            -p 9081:9081 \
+            -p 9080:8080 \
             -e ASPNETCORE_ENVIRONMENT=Production \
             -e DB_HOST=${{ secrets.DB_HOST }} \
             -e DB_PORT=${{ secrets.DB_PORT }} \
