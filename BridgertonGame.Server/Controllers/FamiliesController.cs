@@ -40,7 +40,13 @@ public class FamiliesController : ControllerBase
         if (family == null)
             return NotFound();
 
-        await _gameData.SetLadyWhistledownAsync(id, request.PlayerId);
+        // Check if voting is enabled for this family
+        if (!family.VotingEnabled)
+            return BadRequest(new { message = "Le vote n'est pas activé pour cette famille" });
+
+        // Save the vote
+        await _gameData.SaveVoteAsync(id, request.VoterId, request.PlayerId);
+        
         return Ok(new { message = "Vote enregistré" });
     }
 
@@ -97,6 +103,38 @@ public class FamiliesController : ControllerBase
             await _gameData.RevealLadyWhistledownAsync(family.Id);
         }
         return Ok();
+    }
+
+    [HttpGet("{id}/vote-results")]
+    public async Task<ActionResult<FamilyVoteResult>> GetVoteResults(string id)
+    {
+        var family = await _gameData.GetFamilyByIdAsync(id);
+        if (family == null)
+            return NotFound();
+
+        var results = await _gameData.GetVoteResultsAsync(id);
+        return Ok(results);
+    }
+
+    [HttpGet("vote-results")]
+    public async Task<ActionResult<List<FamilyVoteResult>>> GetAllVoteResults()
+    {
+        var results = await _gameData.GetAllVoteResultsAsync();
+        return Ok(results);
+    }
+
+    [HttpDelete("{familyId}/vote/{voterId}")]
+    public async Task<ActionResult> DeleteVote(string familyId, string voterId)
+    {
+        var family = await _gameData.GetFamilyByIdAsync(familyId);
+        if (family == null)
+            return NotFound();
+
+        var success = await _gameData.DeleteVoteAsync(familyId, voterId);
+        if (!success)
+            return NotFound(new { message = "Vote non trouvé" });
+
+        return Ok(new { message = "Vote supprimé avec succès" });
     }
 
     [HttpPost]

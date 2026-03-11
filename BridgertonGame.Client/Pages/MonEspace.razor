@@ -78,13 +78,6 @@
                 </div>
             }
 
-            @if (!string.IsNullOrEmpty(successMessage))
-            {
-                <div style="background: #d4edda; color: #155724; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;">
-                    <strong>✅ Succès:</strong> @successMessage
-                </div>
-            }
-
             @if (currentPlayer.Role == "Maîtresse de maison")
             {
                 <!-- Message spécial pour la Maîtresse de maison -->
@@ -150,18 +143,37 @@
                             <h3>Vote pour Lady Whistledown</h3>
                         </div>
                         <div class="card-body">
-                            <select class="modern-select" @bind="selectedMemberId">
-                                <option value="">Sélectionne un nom</option>
-                                @foreach (var member in familyMembers)
-                                {
-                                    <option value="@member.Id">@member.Name</option>
-                                }
-                            </select>
-                            <button class="modern-btn primary-btn" 
-                                    disabled="@(string.IsNullOrEmpty(selectedMemberId))" 
-                                    @onclick="ConfirmVote">
-                                Confirmer mon vote
-                            </button>
+                            @if (hasVoted)
+                            {
+                                <!-- Affichage du vote existant -->
+                                <div style="background: #e7f3ff; border-left: 4px solid #2196F3; padding: 20px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 1.1rem; color: #1976D2; margin-bottom: 10px;">
+                                        ✅ <strong>Vous avez déjà voté !</strong>
+                                    </div>
+                                    <div style="font-size: 1.3rem; font-weight: bold; color: #0D47A1; margin-top: 15px;">
+                                        Votre vote : <span style="color: #1565C0;">@existingVoteForName</span>
+                                    </div>
+                                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #90CAF9; font-size: 0.9rem; color: #555;">
+                                        💡 <em>Votre vote sera comptabilisé lors de la révélation</em>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Formulaire de vote -->
+                                <select class="modern-select" @bind="selectedMemberId">
+                                    <option value="">Sélectionne un nom</option>
+                                    @foreach (var member in familyMembers)
+                                    {
+                                        <option value="@member.Id">@member.Name</option>
+                                    }
+                                </select>
+                                <button class="modern-btn primary-btn" 
+                                        disabled="@(string.IsNullOrEmpty(selectedMemberId))" 
+                                        @onclick="ConfirmVote">
+                                    Confirmer mon vote
+                                </button>
+                            }
                         </div>
                     </div>
                 }
@@ -247,6 +259,8 @@
     private string successMessage = "";
     private bool showRole = false;
     private string selectedMemberId = "";
+    private string? existingVoteForName = null; // Nom de la personne pour qui le joueur a voté
+    private bool hasVoted = false; // Le joueur a-t-il déjà voté
     private string articleContent = "";
     private int charCount = 0;
     private TimeSpan? timeUntilNext;
@@ -295,6 +309,9 @@
             
             familyMembers = await ApiService.GetPlayersByFamilyAsync(currentPlayer.FamilyId);
             
+            // Vérifier si le joueur a déjà voté
+            await CheckExistingVote();
+            
             // Charger les points de Lady Whistledown depuis les pénalités
             if (currentPlayer.IsLadyWhistledown)
             {
@@ -307,6 +324,33 @@
         {
             errorMessage = $"Erreur de connexion au serveur: {ex.Message}";
             Console.WriteLine($"Erreur LoadPlayerData: {ex}");
+        }
+    }
+
+    private async Task CheckExistingVote()
+    {
+        if (currentPlayer == null || currentFamily == null) return;
+
+        try
+        {
+            var voteResults = await ApiService.GetVoteResultsAsync(currentFamily.Id);
+            var playerVote = voteResults?.Votes.FirstOrDefault(v => v.VoterId == currentPlayer.Id);
+            
+            if (playerVote != null)
+            {
+                hasVoted = true;
+                existingVoteForName = playerVote.VotedForName;
+            }
+            else
+            {
+                hasVoted = false;
+                existingVoteForName = null;
+            }
+        }
+        catch
+        {
+            hasVoted = false;
+            existingVoteForName = null;
         }
     }
 
@@ -358,14 +402,23 @@
 
     private async Task ConfirmVote()
     {
-        if (string.IsNullOrEmpty(selectedMemberId) || currentFamily == null) return;
+        if (string.IsNullOrEmpty(selectedMemberId) || currentFamily == null || currentPlayer == null) return;
 
         try
         {
             errorMessage = "";
             successMessage = "";
-            var request = new VoteRequest { FamilyId = currentFamily.Id, PlayerId = selectedMemberId };
+            var request = new VoteRequest 
+            { 
+                FamilyId = currentFamily.Id, 
+                VoterId = currentPlayer.Id,
+                PlayerId = selectedMemberId 
+            };
             await Http.PostAsJsonAsync($"api/families/{currentFamily.Id}/vote", request);
+            
+            // Mettre à jour le statut du vote
+            await CheckExistingVote();
+            
             successMessage = "Votre vote a été enregistré !";
             _ = ClearMessagesAfterDelay();
         }

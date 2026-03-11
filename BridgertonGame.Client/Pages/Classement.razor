@@ -105,6 +105,7 @@
                 var ladyWhistledown = family.LadyWhistledownId != null ? players?.FirstOrDefault(p => p.Id == family.LadyWhistledownId) : null;
                 var articleCount = articles?.Count(a => a.FamilyId == family.Id) ?? 0;
                 var points = GetPlayerPoints(family.Id);
+                var voteResult = voteResults?.FirstOrDefault(vr => vr.FamilyId == family.Id);
                 
                 <div class="character-card-modern reveal-card-wrapper @GetWhistledownRankClass(rank)">
                     @if (rank == 1 && (family.Revealed || points > 0))
@@ -141,6 +142,29 @@
                                 {
                                     <div style="margin-top: 8px; padding: 6px 12px; background: rgba(102, 126, 234, 0.2); color: #667eea; border-radius: 15px; display: inline-block; font-size: 0.9rem;">
                                         📰 <strong>@articleCount article@(articleCount > 1 ? "s" : "")</strong>
+                                    </div>
+                                }
+                                
+                                @* Afficher les résultats des votes si révélé *@
+                                @if (voteResult != null && voteResult.IsRevealed && voteResult.Votes.Any())
+                                {
+                                    <div style="margin-top: 15px; padding: 12px; background: rgba(255, 255, 255, 0.9); border-radius: 10px; width: 100%;">
+                                        <div style="font-weight: 600; margin-bottom: 8px; color: #2c3e50; font-size: 0.95rem;">
+                                            🗳️ Résultats des votes
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                                            <div style="text-align: center; padding: 6px; background: #d4edda; border-radius: 5px;">
+                                                <div style="font-size: 1.2rem; font-weight: bold; color: #28a745;">@voteResult.TotalCorrectVotes</div>
+                                                <div style="font-size: 0.75rem; color: #155724;">Corrects</div>
+                                            </div>
+                                            <div style="text-align: center; padding: 6px; background: #f8d7da; border-radius: 5px;">
+                                                <div style="font-size: 1.2rem; font-weight: bold; color: #dc3545;">@voteResult.TotalIncorrectVotes</div>
+                                                <div style="font-size: 0.75rem; color: #721c24;">Incorrects</div>
+                                            </div>
+                                        </div>
+                                        <div style="text-align: center; padding: 8px; background: @(voteResult.TotalPointsAwarded >= 0 ? "#d4edda" : "#f8d7da"); border-radius: 5px; font-weight: bold; font-size: 0.9rem; color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24");">
+                                            @(voteResult.TotalPointsAwarded > 0 ? "+" : "")@voteResult.TotalPointsAwarded pts
+                                        </div>
                                     </div>
                                 }
                             }
@@ -192,6 +216,7 @@
     private List<Player>? players;
     private List<Article>? articles;
     private Dictionary<string, int> penalties = new();
+    private List<FamilyVoteResult>? voteResults;
     private bool showModal = false;
     private string selectedImage = "";
 
@@ -202,6 +227,7 @@
         players = await ApiService.GetAllPlayersAsync();
         articles = await ApiService.GetAllArticlesAsync();
         penalties = await ApiService.GetPenaltiesAsync();
+        voteResults = await ApiService.GetAllVoteResultsAsync();
     }
 
     private int GetPlayerPoints(string familyId)

@@ -18,6 +18,8 @@ public class BridgertonDbContext : DbContext
     public DbSet<PublicationCooldown> PublicationCooldowns { get; set; }
     public DbSet<WhistledownPenalty> WhistledownPenalties { get; set; }
     public DbSet<AdminCredential> AdminCredentials { get; set; }
+    public DbSet<Vote> Votes { get; set; }
+    public DbSet<VoteResult> VoteResults { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +33,8 @@ public class BridgertonDbContext : DbContext
         modelBuilder.Entity<PublicationCooldown>().HasKey(p => p.FamilyId);
         modelBuilder.Entity<WhistledownPenalty>().HasKey(w => w.FamilyId);
         modelBuilder.Entity<AdminCredential>().HasKey(a => a.Id);
+        modelBuilder.Entity<Vote>().HasKey(v => v.Id);
+        modelBuilder.Entity<VoteResult>().HasKey(vr => vr.Id);
 
         // Seed initial data
         SeedData(modelBuilder);

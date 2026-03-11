@@ -45,7 +45,8 @@ public class PublishArticleResponse
 public class VoteRequest
 {
     public string FamilyId { get; set; } = string.Empty;
-    public string PlayerId { get; set; } = string.Empty;
+    public string VoterId { get; set; } = string.Empty;
+    public string PlayerId { get; set; } = string.Empty; // The player being voted for
 }
 
 public class SetWhistledownRequest

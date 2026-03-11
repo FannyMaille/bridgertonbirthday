@@ -133,6 +133,10 @@ public class DatabaseGameDataService
         if (family != null)
         {
             family.Revealed = true;
+            
+            // Calculate and award points based on votes
+            await CalculateAndAwardVotePointsAsync(familyId);
+            
             await _context.SaveChangesAsync();
         }
     }
@@ -142,9 +146,238 @@ public class DatabaseGameDataService
         var family = await _context.Families.FindAsync(familyId);
         if (family != null)
         {
+            // If revealing for the first time, calculate points
+            if (revealed && !family.Revealed)
+            {
+                await CalculateAndAwardVotePointsAsync(familyId);
+            }
+            // If unrevealing, remove the vote points
+            else if (!revealed && family.Revealed)
+            {
+                await RemoveVotePointsAsync(familyId);
+            }
+            
             family.Revealed = revealed;
             await _context.SaveChangesAsync();
         }
+    }
+
+    private async Task CalculateAndAwardVotePointsAsync(string familyId)
+    {
+        var family = await _context.Families.FindAsync(familyId);
+        if (family == null || family.LadyWhistledownId == null)
+            return;
+
+        // Get all votes for this family
+        var votes = await _context.Votes
+            .Where(v => v.FamilyId == familyId)
+            .ToListAsync();
+
+        if (!votes.Any())
+            return;
+
+        int correctVotes = 0;
+        int incorrectVotes = 0;
+
+        foreach (var vote in votes)
+        {
+            if (vote.VotedForId == family.LadyWhistledownId)
+            {
+                correctVotes++;
+            }
+            else
+            {
+                incorrectVotes++;
+            }
+        }
+
+        // Calculate net points: +10 for correct, -10 for incorrect
+        int pointsAwarded = (correctVotes * 10) - (incorrectVotes * 10);
+
+        // Create or update vote result
+        var existingResult = await _context.VoteResults
+            .FirstOrDefaultAsync(vr => vr.FamilyId == familyId);
+
+        if (existingResult != null)
+        {
+            existingResult.CorrectVotes = correctVotes;
+            existingResult.IncorrectVotes = incorrectVotes;
+            existingResult.PointsAwarded = pointsAwarded;
+            existingResult.RevealedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            var voteResult = new VoteResult
+            {
+                FamilyId = familyId,
+                CorrectVotes = correctVotes,
+                IncorrectVotes = incorrectVotes,
+                PointsAwarded = pointsAwarded,
+                RevealedAt = DateTime.UtcNow
+            };
+            _context.VoteResults.Add(voteResult);
+        }
+
+        // Add points to family through game score
+        await CreateOrUpdateVoteGameScoreAsync(familyId, pointsAwarded);
+    }
+
+    private async Task RemoveVotePointsAsync(string familyId)
+    {
+        // Remove vote result
+        var voteResult = await _context.VoteResults
+            .FirstOrDefaultAsync(vr => vr.FamilyId == familyId);
+        
+        if (voteResult != null)
+        {
+            _context.VoteResults.Remove(voteResult);
+        }
+
+        // Remove vote game score
+        var voteScore = await _context.GameScores
+            .FirstOrDefaultAsync(gs => gs.GameName == "Votes Lady Whistledown" && gs.FamilyId == familyId);
+        
+        if (voteScore != null)
+        {
+            _context.GameScores.Remove(voteScore);
+        }
+    }
+
+    private async Task CreateOrUpdateVoteGameScoreAsync(string familyId, int points)
+    {
+        var scoreEntity = await _context.GameScores
+            .FirstOrDefaultAsync(g => g.GameName == "Votes Lady Whistledown" && g.FamilyId == familyId);
+
+        if (scoreEntity != null)
+        {
+            scoreEntity.Score = points;
+        }
+        else
+        {
+            var newScore = new GameScoreEntity
+            {
+                GameName = "Votes Lady Whistledown",
+                FamilyId = familyId,
+                Score = points
+            };
+            _context.GameScores.Add(newScore);
+        }
+    }
+
+    public async Task<List<Vote>> GetAllVotesAsync()
+    {
+        return await _context.Votes.ToListAsync();
+    }
+
+    public async Task SaveVoteAsync(string familyId, string voterId, string votedForId)
+    {
+        // Check if user already voted
+        var existingVote = await _context.Votes
+            .FirstOrDefaultAsync(v => v.FamilyId == familyId && v.VoterId == voterId);
+
+        if (existingVote != null)
+        {
+            // Update existing vote
+            existingVote.VotedForId = votedForId;
+            existingVote.VotedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            // Create new vote
+            var vote = new Vote
+            {
+                FamilyId = familyId,
+                VoterId = voterId,
+                VotedForId = votedForId,
+                VotedAt = DateTime.UtcNow
+            };
+            _context.Votes.Add(vote);
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> DeleteVoteAsync(string familyId, string voterId)
+    {
+        var vote = await _context.Votes
+            .FirstOrDefaultAsync(v => v.FamilyId == familyId && v.VoterId == voterId);
+
+        if (vote == null)
+            return false;
+
+        _context.Votes.Remove(vote);
+        await _context.SaveChangesAsync();
+
+        // If family is revealed, recalculate points
+        var family = await _context.Families.FindAsync(familyId);
+        if (family != null && family.Revealed)
+        {
+            await CalculateAndAwardVotePointsAsync(familyId);
+            await _context.SaveChangesAsync();
+        }
+
+        return true;
+    }
+
+    public async Task<FamilyVoteResult> GetVoteResultsAsync(string familyId)
+    {
+        var family = await _context.Families.FindAsync(familyId);
+        if (family == null)
+            return new FamilyVoteResult();
+
+        var votes = await _context.Votes
+            .Where(v => v.FamilyId == familyId)
+            .ToListAsync();
+
+        var players = await _context.Players.ToListAsync();
+        var ladyWhistledown = family.LadyWhistledownId != null 
+            ? players.FirstOrDefault(p => p.Id == family.LadyWhistledownId) 
+            : null;
+
+        var voteDetails = votes.Select(v =>
+        {
+            var voter = players.FirstOrDefault(p => p.Id == v.VoterId);
+            var votedFor = players.FirstOrDefault(p => p.Id == v.VotedForId);
+            var isCorrect = v.VotedForId == family.LadyWhistledownId;
+
+            return new VoteDetails
+            {
+                VoterId = v.VoterId,
+                VoterName = voter?.Name ?? "Inconnu",
+                VotedForName = votedFor?.Name ?? "Inconnu",
+                IsCorrect = isCorrect,
+                PointsAwarded = isCorrect ? 10 : -10
+            };
+        }).ToList();
+
+        var voteResult = await _context.VoteResults
+            .FirstOrDefaultAsync(vr => vr.FamilyId == familyId);
+
+        return new FamilyVoteResult
+        {
+            FamilyId = familyId,
+            FamilyName = family.Name,
+            ActualLadyWhistledownName = ladyWhistledown?.Name,
+            Votes = voteDetails,
+            TotalCorrectVotes = voteResult?.CorrectVotes ?? 0,
+            TotalIncorrectVotes = voteResult?.IncorrectVotes ?? 0,
+            TotalPointsAwarded = voteResult?.PointsAwarded ?? 0,
+            IsRevealed = family.Revealed
+        };
+    }
+
+    public async Task<List<FamilyVoteResult>> GetAllVoteResultsAsync()
+    {
+        var families = await _context.Families.ToListAsync();
+        var results = new List<FamilyVoteResult>();
+
+        foreach (var family in families)
+        {
+            var result = await GetVoteResultsAsync(family.Id);
+            results.Add(result);
+        }
+
+        return results;
     }
 
     public async Task CreateFamilyAsync(Family family)
@@ -197,6 +430,14 @@ public class DatabaseGameDataService
         var gameScores = await _context.GameScores.Where(g => g.FamilyId == familyId).ToListAsync();
         if (gameScores.Any())
             _context.GameScores.RemoveRange(gameScores);
+
+        var votes = await _context.Votes.Where(v => v.FamilyId == familyId).ToListAsync();
+        if (votes.Any())
+            _context.Votes.RemoveRange(votes);
+
+        var voteResults = await _context.VoteResults.Where(vr => vr.FamilyId == familyId).ToListAsync();
+        if (voteResults.Any())
+            _context.VoteResults.RemoveRange(voteResults);
 
         _context.Families.Remove(family);
         await _context.SaveChangesAsync();

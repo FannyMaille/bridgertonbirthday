@@ -503,6 +503,10 @@ else
                         <div class="cards-grid">
                             @foreach (var family in families)
                             {
+                                var voteResult = voteResults?.FirstOrDefault(vr => vr.FamilyId == family.Id);
+                                var voteCount = voteResult?.Votes.Count ?? 0;
+                                var ladyWhistledown = family.LadyWhistledownId != null ? players?.FirstOrDefault(p => p.Id == family.LadyWhistledownId) : null;
+                                
                                 <div class="info-card">
                                     <div class="info-card-header">
                                         <div class="info-card-title">@family.Name</div>
@@ -514,6 +518,79 @@ else
                                         <input type="checkbox" checked="@family.VotingEnabled" @onchange="e => ToggleVoting(family.Id, (bool)(e.Value ?? false))" />
                                         <span>@(family.VotingEnabled ? "Vote autorisé" : "Vote désactivé")</span>
                                     </label>
+                                    
+                                    @* Afficher les informations de vote *@
+                                    <div style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                            <span style="font-weight: 600; color: #495057;">Lady Whistledown:</span>
+                                            <span style="color: #6c757d;">@(ladyWhistledown?.Name ?? "Non définie")</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                            <span style="font-weight: 600, color: #495057;">Votes enregistrés:</span>
+                                            <span style="padding: 4px 12px; background: @(voteCount > 0 ? "#d4edda" : "#fff3cd"); color: @(voteCount > 0 ? "#155724" : "#856404"); border-radius: 12px; font-weight: 600;">
+                                                @voteCount
+                                            </span>
+                                        </div>
+                                        
+                                        @if (voteResult != null && voteResult.Votes.Any())
+                                        {
+                                            <details style="margin-top: 10px;">
+                                                <summary style="cursor: pointer; font-weight: 600; color: #495057; padding: 8px; background: white; border-radius: 5px; margin-bottom: 5px;">
+                                                    📊 Voir les détails des votes
+                                                </summary>
+                                                <div style="margin-top: 8px; max-height: 200px; overflow-y: auto;">
+                                                    @foreach (var vote in voteResult.Votes)
+                                                    {
+                                                        <div style="padding: 8px; margin: 5px 0; background: white; border-left: 3px solid @(vote.IsCorrect ? "#28a745" : "#dc3545"); border-radius: 3px; font-size: 0.85rem; display: flex; justify-content: space-between; align-items: center;">
+                                                            <div>
+                                                                <strong>@vote.VoterName</strong>
+                                                                <span style="color: #6c757d;"> → </span>
+                                                                <strong>@vote.VotedForName</strong>
+                                                            </div>
+                                                            <div style="display: flex; gap: 8px; align-items: center;">
+                                                                <span style="font-weight: bold; color: @(vote.IsCorrect ? "#28a745" : "#dc3545");">
+                                                                    @(vote.IsCorrect ? "✓" : "✗")
+                                                                </span>
+                                                                <button class="icon-btn btn-danger" 
+                                                                        @onclick="() => DeleteVote(family.Id, vote.VoterId, vote.VoterName)" 
+                                                                        title="Supprimer ce vote"
+                                                                        style="padding: 4px 8px; font-size: 0.75rem;">
+                                                                    🗑️
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </details>
+                                            
+                                            @if (family.Revealed)
+                                            {
+                                                <div style="margin-top: 10px; padding: 8px; background: @(voteResult.TotalPointsAwarded >= 0 ? "#d4edda" : "#f8d7da"); border-radius: 5px; text-align: center;">
+                                                    <div style="font-size: 0.8rem; color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24"); margin-bottom: 2px;">
+                                                        Résultat
+                                                    </div>
+                                                    <div style="font-size: 1.2rem; font-weight: bold; color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24");">
+                                                        ✅ @voteResult.TotalCorrectVotes  |  ❌ @voteResult.TotalIncorrectVotes
+                                                    </div>
+                                                    <div style="font-size: 0.9rem; font-weight: bold; color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24"); margin-top: 4px;">
+                                                        @(voteResult.TotalPointsAwarded > 0 ? "+" : "")@voteResult.TotalPointsAwarded pts
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div style="margin-top: 10px; padding: 8px; background: #fff3cd; border-radius: 5px; text-align: center; color: #856404; font-size: 0.85rem;">
+                                                    ⏳ En attente de révélation
+                                                </div>
+                                            }
+                                        }
+                                        else if (family.VotingEnabled)
+                                        {
+                                            <div style="margin-top: 10px; padding: 8px; background: #e7f3ff; border-radius: 5px; text-align: center; color: #004085; font-size: 0.85rem;">
+                                                👥 Aucun vote pour le moment
+                                            </div>
+                                        }
+                                    </div>
                                 </div>
                             }
                         </div>
@@ -530,6 +607,8 @@ else
                         <div class="cards-grid">
                             @foreach (var family in families)
                             {
+                                var voteResult = voteResults?.FirstOrDefault(vr => vr.FamilyId == family.Id);
+                                
                                 <div class="info-card">
                                     <div class="info-card-header">
                                         <div class="info-card-title">@family.Name</div>
@@ -541,6 +620,62 @@ else
                                         <input type="checkbox" checked="@family.Revealed" @onchange="e => ToggleReveal(family.Id, (bool)(e.Value ?? false))" />
                                         <span>@(family.Revealed ? "Révélé" : "Non révélé")</span>
                                     </label>
+                                    
+                                    @if (family.Revealed && voteResult != null)
+                                    {
+                                        <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                                            <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">
+                                                🎭 @voteResult.ActualLadyWhistledownName
+                                            </div>
+                                            
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                                                <div style="text-align: center; padding: 8px; background: #d4edda; border-radius: 5px;">
+                                                    <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">@voteResult.TotalCorrectVotes</div>
+                                                    <div style="font-size: 0.85rem; color: #155724;">Votes corrects</div>
+                                                </div>
+                                                <div style="text-align: center; padding: 8px; background: #f8d7da; border-radius: 5px;">
+                                                    <div style="font-size: 1.5rem; font-weight: bold; color: #dc3545;">@voteResult.TotalIncorrectVotes</div>
+                                                    <div style="font-size: 0.85rem; color: #721c24;">Votes incorrects</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div style="text-align: center; padding: 10px; background: @(voteResult.TotalPointsAwarded >= 0 ? "#d4edda" : "#f8d7da"); border-radius: 5px; font-weight: bold; color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24");">
+                                                Points attribués: @(voteResult.TotalPointsAwarded > 0 ? "+" : "")@voteResult.TotalPointsAwarded
+                                            </div>
+                                            
+                                            @if (voteResult.Votes.Any())
+                                            {
+                                                <details style="margin-top: 10px;">
+                                                    <summary style="cursor: pointer; font-weight: 600; color: #495057; padding: 5px;">
+                                                        📊 Détails des votes (@voteResult.Votes.Count)
+                                                    </summary>
+                                                    <div style="margin-top: 10px;">
+                                                        @foreach (var vote in voteResult.Votes)
+                                                        {
+                                                            <div style="padding: 8px; margin: 5px 0; background: white; border-left: 3px solid @(vote.IsCorrect ? "#28a745" : "#dc3545"); border-radius: 3px; font-size: 0.9rem;">
+                                                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                                    <div>
+                                                                        <strong>@vote.VoterName</strong> a voté pour <strong>@vote.VotedForName</strong>
+                                                                    </div>
+                                                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                                                        <span style="font-weight: bold; color: @(vote.IsCorrect ? "#28a745" : "#dc3545");">
+                                                                            @(vote.IsCorrect ? "✓" : "✗") @(vote.PointsAwarded > 0 ? "+" : "")@vote.PointsAwarded pts
+                                                                        </span>
+                                                                        <button class="icon-btn btn-danger" 
+                                                                                @onclick="() => DeleteVote(family.Id, vote.VoterId, vote.VoterName)" 
+                                                                                title="Supprimer ce vote"
+                                                                                style="padding: 4px 8px; font-size: 0.75rem;">
+                                                                            🗑️
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </details>
+                                            }
+                                        </div>
+                                    }
                                 </div>
                             }
                         </div>
@@ -681,6 +816,7 @@ else
     private List<Article>? articles;
     private List<Player>? players;
     private Dictionary<string, int> penalties = new();
+    private List<FamilyVoteResult>? voteResults;
 
     private string? editingGameId = null;
     private string editingGameName = "";
@@ -712,6 +848,7 @@ else
         articles = await ApiService.GetAllArticlesAsync();
         players = await ApiService.GetAllPlayersAsync();
         penalties = await ApiService.GetPenaltiesAsync();
+        voteResults = await ApiService.GetAllVoteResultsAsync();
     }
 
     private async Task ValidateLogin()
@@ -879,6 +1016,25 @@ else
     {
         await Http.PostAsync("api/families/reveal-all", null);
         await LoadData();
+    }
+
+    private async Task DeleteVote(string familyId, string voterId, string voterName)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"Êtes-vous sûr de vouloir supprimer le vote de '{voterName}' ?\n\nSi la famille est révélée, les points seront recalculés automatiquement.");
+        
+        if (confirmed)
+        {
+            var success = await ApiService.DeleteVoteAsync(familyId, voterId);
+            if (success)
+            {
+                await LoadData();
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Erreur lors de la suppression du vote.");
+            }
+        }
     }
 
     private async Task Logout()

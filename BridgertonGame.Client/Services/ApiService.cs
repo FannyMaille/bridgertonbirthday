@@ -76,4 +76,27 @@ public class ApiService
     {
         return await _httpClient.GetFromJsonAsync<Dictionary<string, int>>("api/gamescores/penalties") ?? new();
     }
+
+    public async Task<FamilyVoteResult?> GetVoteResultsAsync(string familyId)
+    {
+        return await _httpClient.GetFromJsonAsync<FamilyVoteResult>($"api/families/{familyId}/vote-results");
+    }
+
+    public async Task<List<FamilyVoteResult>> GetAllVoteResultsAsync()
+    {
+        return await _httpClient.GetFromJsonAsync<List<FamilyVoteResult>>("api/families/vote-results") ?? new();
+    }
+
+    public async Task<bool> DeleteVoteAsync(string familyId, string voterId)
+    {
+        try
+        {
+            var response = await _httpClient.DeleteAsync($"api/families/{familyId}/vote/{voterId}");
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
