@@ -572,7 +572,12 @@ public class DatabaseGameDataService
         // Calculate totals and penalties
         if (gameScores.Any())
         {
-            var familyIds = gameScores.First().FamilyScores.Keys.ToList();
+            // Get all unique family IDs from ALL game scores, not just the first one
+            var familyIds = gameScores
+                .SelectMany(gs => gs.FamilyScores.Keys)
+                .Distinct()
+                .ToList();
+            
             var totalScores = new Dictionary<string, int>();
             var penaltyScores = new Dictionary<string, int>();
 
@@ -588,7 +593,7 @@ public class DatabaseGameDataService
             var penalties = await _context.WhistledownPenalties.ToListAsync();
             foreach (var penalty in penalties)
             {
-                if (penaltyScores.ContainsKey(penalty.FamilyId))
+                if (totalScores.ContainsKey(penalty.FamilyId))
                 {
                     penaltyScores[penalty.FamilyId] = -penalty.Penalty; // Negative value for display
                     totalScores[penalty.FamilyId] -= penalty.Penalty;
