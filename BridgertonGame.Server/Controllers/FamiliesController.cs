@@ -77,6 +77,17 @@ public class FamiliesController : ControllerBase
         return Ok();
     }
 
+    [HttpPost("{id}/toggle-reveal")]
+    public async Task<ActionResult> ToggleReveal(string id, [FromBody] bool revealed)
+    {
+        var family = await _gameData.GetFamilyByIdAsync(id);
+        if (family == null)
+            return NotFound();
+
+        await _gameData.ToggleRevealLadyWhistledownAsync(id, revealed);
+        return Ok();
+    }
+
     [HttpPost("reveal-all")]
     public async Task<ActionResult> RevealAll()
     {

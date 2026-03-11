@@ -137,6 +137,16 @@ public class DatabaseGameDataService
         }
     }
 
+    public async Task ToggleRevealLadyWhistledownAsync(string familyId, bool revealed)
+    {
+        var family = await _context.Families.FindAsync(familyId);
+        if (family != null)
+        {
+            family.Revealed = revealed;
+            await _context.SaveChangesAsync();
+        }
+    }
+
     public async Task CreateFamilyAsync(Family family)
     {
         _context.Families.Add(family);

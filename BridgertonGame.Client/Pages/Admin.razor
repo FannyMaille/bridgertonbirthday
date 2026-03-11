@@ -533,20 +533,14 @@ else
                                 <div class="info-card">
                                     <div class="info-card-header">
                                         <div class="info-card-title">@family.Name</div>
-                                        @if (family.Revealed)
-                                        {
-                                            <span class="info-card-badge badge-success">
-                                                <span class="status-indicator status-active"></span>
-                                                RÉVÉLÉ
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <button class="modern-btn btn-primary" @onclick="() => RevealWhistledown(family.Id)">
-                                                🎭 Révéler
-                                            </button>
-                                        }
+                                        <span class="info-card-badge @(family.Revealed ? "badge-success" : "badge-danger")">
+                                            @(family.Revealed ? "RÉVÉLÉ" : "NON RÉVÉLÉ")
+                                        </span>
                                     </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked="@family.Revealed" @onchange="e => ToggleReveal(family.Id, (bool)(e.Value ?? false))" />
+                                        <span>@(family.Revealed ? "Révélé" : "Non révélé")</span>
+                                    </label>
                                 </div>
                             }
                         </div>
@@ -866,6 +860,12 @@ else
     private async Task ToggleVoting(string familyId, bool enabled)
     {
         await Http.PostAsJsonAsync($"api/families/{familyId}/toggle-voting", enabled);
+        await LoadData();
+    }
+
+    private async Task ToggleReveal(string familyId, bool revealed)
+    {
+        await Http.PostAsJsonAsync($"api/families/{familyId}/toggle-reveal", revealed);
         await LoadData();
     }
 
