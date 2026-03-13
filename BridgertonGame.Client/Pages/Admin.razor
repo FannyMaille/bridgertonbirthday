@@ -835,6 +835,12 @@ else
                         Vote activé
                     </label>
                 </div>
+                @if (!string.IsNullOrEmpty(familyValidationError))
+                {
+                    <div style="background: #fee; color: #c33; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <strong>⚠️</strong> @familyValidationError
+                    </div>
+                }
             </div>
             <div class="modal-footer">
                 <button class="modern-btn btn-outline" @onclick="CloseEditFamilyModal">Annuler</button>
@@ -870,6 +876,7 @@ else
     private Family? editingFamily = null;
     private bool showEditFamilyModal = false;
     private bool isCreatingFamily = false;
+    private string familyValidationError = "";
 
     private HashSet<string> visibleCodes = new();
     private HashSet<string> visibleRoles = new();
@@ -1307,6 +1314,7 @@ else
         editingFamily = null;
         showEditFamilyModal = false;
         isCreatingFamily = false;
+        familyValidationError = "";
     }
 
     private async Task SaveFamily()
@@ -1315,19 +1323,39 @@ else
 
         try
         {
+            familyValidationError = "";
+            
             if (isCreatingFamily)
             {
-                await Http.PostAsJsonAsync("api/families", editingFamily);
+                var response = await Http.PostAsJsonAsync("api/families", editingFamily);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    familyValidationError = $"Erreur serveur: {errorContent}";
+                    await JSRuntime.InvokeVoidAsync("alert", $"Erreur lors de la création : {errorContent}");
+                    return;
+                }
             }
             else
             {
-                await Http.PutAsJsonAsync($"api/families/{editingFamily.Id}", editingFamily);
+                var response = await Http.PutAsJsonAsync($"api/families/{editingFamily.Id}", editingFamily);
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    familyValidationError = $"Erreur serveur: {errorContent}";
+                    await JSRuntime.InvokeVoidAsync("alert", $"Erreur lors de la modification : {errorContent}");
+                    return;
+                }
             }
+            
             await LoadData();
             CloseEditFamilyModal();
         }
         catch (Exception ex)
         {
+            familyValidationError = $"Exception: {ex.Message}";
             await JSRuntime.InvokeVoidAsync("alert", $"Erreur lors de la sauvegarde : {ex.Message}");
         }
     }
@@ -1353,10 +1381,25 @@ else
 
     private bool IsFamilyValid()
     {
-        if (editingFamily == null) return false;
+        if (editingFamily == null)
+        {
+            familyValidationError = "Aucune famille en cours d'édition";
+            return false;
+        }
         
-        return !string.IsNullOrWhiteSpace(editingFamily.Name) &&
-               editingFamily.Rank >= 1 &&
-               editingFamily.Rank <= 5;
+        if (string.IsNullOrWhiteSpace(editingFamily.Name))
+        {
+            familyValidationError = "Le nom de la famille est requis";
+            return false;
+        }
+        
+        if (editingFamily.Rank < 1 || editingFamily.Rank > 6)
+        {
+            familyValidationError = "Le rang doit être entre 1 et 6";
+            return false;
+        }
+        
+        familyValidationError = "";
+        return true;
     }
 }
