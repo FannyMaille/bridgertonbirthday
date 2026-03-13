@@ -247,8 +247,21 @@ else
                                         </small>
                                         @if (ladyWhistledown != null)
                                         {
-                                            <small style="color: #2e7d32; font-weight: 600;">
-                                                @ladyWhistledown.Name: +@penalty pts
+                                            <small style="color: #2e7d32; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                                                <span>
+                                                    @if (visibleWhistledowns.Contains(family.Id))
+                                                    {
+                                                        @ladyWhistledown.Name
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>••••••••</span>
+                                                    }
+                                                </span>
+                                                <button class="toggle-visibility-btn" @onclick="() => ToggleWhistledownVisibility(family.Id)" title="@(visibleWhistledowns.Contains(family.Id) ? "Masquer" : "Afficher")" style="font-size: 0.8rem;">
+                                                    @(visibleWhistledowns.Contains(family.Id) ? "👁️" : "👁️‍🗨️")
+                                                </button>
+                                                <span>: +@penalty pts</span>
                                             </small>
                                         }
                                         <small style="color: #666; margin-top: 5px;">
@@ -297,10 +310,7 @@ else
                                     <div class="user-card-header">
                                         <div class="user-avatar-wrapper">
                                             <img src="@player.ImageUrl" alt="@player.Name" class="user-avatar" />
-                                            @if (player.IsLadyWhistledown)
-                                            {
-                                                <div class="whistledown-badge">🎭</div>
-                                            }
+                                            @* Badge Lady Whistledown masqué pour préserver la confidentialité *@
                                         </div>
                                         <div class="user-info">
                                             <div class="user-name">@player.Name</div>
@@ -354,7 +364,7 @@ else
                                         <button class="icon-btn btn-primary" @onclick="() => EditUser(player)" title="Modifier">
                                             ✏️
                                         </button>
-                                        <button class="icon-btn @(player.IsLadyWhistledown ? "btn-warning" : "btn-success")" 
+                                        <button class="icon-btn btn-primary" 
                                                 @onclick="() => ToggleLadyWhistledown(player)" 
                                                 title="@(player.IsLadyWhistledown ? "Retirer Lady Whistledown" : "Définir comme Lady Whistledown")">
                                             🎭
@@ -523,7 +533,24 @@ else
                                     <div style="margin-top: 15px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                             <span style="font-weight: 600; color: #495057;">Lady Whistledown:</span>
-                                            <span style="color: #6c757d;">@(ladyWhistledown?.Name ?? "Non définie")</span>
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="color: #6c757d;">
+                                                    @if (visibleWhistledowns.Contains(family.Id))
+                                                    {
+                                                        @(ladyWhistledown?.Name ?? "Non définie")
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>••••••••</span>
+                                                    }
+                                                </span>
+                                                @if (ladyWhistledown != null)
+                                                {
+                                                    <button class="toggle-visibility-btn" @onclick="() => ToggleWhistledownVisibility(family.Id)" title="@(visibleWhistledowns.Contains(family.Id) ? "Masquer" : "Afficher")">
+                                                        @(visibleWhistledowns.Contains(family.Id) ? "👁️" : "👁️‍🗨️")
+                                                    </button>
+                                                }
+                                            </div>
                                         </div>
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                                             <span style="font-weight: 600, color: #495057;">Votes enregistrés:</span>
@@ -572,7 +599,7 @@ else
                                                     <div style="font-size: 1.2rem; font-weight: bold; color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24");">
                                                         ✅ @voteResult.TotalCorrectVotes  |  ❌ @voteResult.TotalIncorrectVotes
                                                     </div>
-                                                    <div style="font-size: 0.9rem; font-weight: bold; color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24"); margin-top: 4px;">
+                                                    <div style="font-size: 0.9rem; font-weight: bold, color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24"); margin-top: 4px;">
                                                         @(voteResult.TotalPointsAwarded > 0 ? "+" : "")@voteResult.TotalPointsAwarded pts
                                                     </div>
                                                 </div>
@@ -624,17 +651,33 @@ else
                                     @if (family.Revealed && voteResult != null)
                                     {
                                         <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                                            <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50;">
-                                                🎭 @voteResult.ActualLadyWhistledownName
+                                            <div style="font-weight: 600; margin-bottom: 10px; color: #2c3e50; display: flex; align-items: center; gap: 8px;">
+                                                <span>🎭</span>
+                                                <span>
+                                                    @if (visibleWhistledowns.Contains(family.Id))
+                                                    {
+                                                        @voteResult.ActualLadyWhistledownName
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>••••••••</span>
+                                                    }
+                                                </span>
+                                                @if (voteResult.ActualLadyWhistledownName != null)
+                                                {
+                                                    <button class="toggle-visibility-btn" @onclick="() => ToggleWhistledownVisibility(family.Id)" title="@(visibleWhistledowns.Contains(family.Id) ? "Masquer" : "Afficher")">
+                                                        @(visibleWhistledowns.Contains(family.Id) ? "👁️" : "👁️‍🗨️")
+                                                    </button>
+                                                }
                                             </div>
                                             
                                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
                                                 <div style="text-align: center; padding: 8px; background: #d4edda; border-radius: 5px;">
-                                                    <div style="font-size: 1.5rem; font-weight: bold; color: #28a745;">@voteResult.TotalCorrectVotes</div>
+                                                    <div style="font-size: 1.5rem; font-weight: bold, color: #28a745;">@voteResult.TotalCorrectVotes</div>
                                                     <div style="font-size: 0.85rem; color: #155724;">Votes corrects</div>
                                                 </div>
                                                 <div style="text-align: center; padding: 8px; background: #f8d7da; border-radius: 5px;">
-                                                    <div style="font-size: 1.5rem; font-weight: bold; color: #dc3545;">@voteResult.TotalIncorrectVotes</div>
+                                                    <div style="font-size: 1.5rem; font-weight: bold, color: #dc3545;">@voteResult.TotalIncorrectVotes</div>
                                                     <div style="font-size: 0.85rem; color: #721c24;">Votes incorrects</div>
                                                 </div>
                                             </div>
