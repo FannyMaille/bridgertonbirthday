@@ -42,10 +42,43 @@ public class DatabaseGameDataService
         existingPlayer.Name = player.Name;
         existingPlayer.Title = player.Title;
         existingPlayer.Code = player.Code;
-        existingPlayer.Role = player.Role;
         existingPlayer.ImageUrl = player.ImageUrl;
         existingPlayer.FamilyId = player.FamilyId;
-        existingPlayer.IsLadyWhistledown = player.IsLadyWhistledown;
+        
+        // Synchroniser le rôle et IsLadyWhistledown
+        existingPlayer.Role = player.Role;
+        existingPlayer.IsLadyWhistledown = player.Role == "Lady Whistledown";
+
+        // Si on change le rôle vers Lady Whistledown, mettre à jour la famille
+        if (existingPlayer.IsLadyWhistledown && !string.IsNullOrEmpty(existingPlayer.FamilyId))
+        {
+            var family = await _context.Families.FindAsync(existingPlayer.FamilyId);
+            if (family != null)
+            {
+                // Retirer l'ancien Lady Whistledown de cette famille s'il existe
+                if (family.LadyWhistledownId != null && family.LadyWhistledownId != existingPlayer.Id)
+                {
+                    var oldLW = await _context.Players.FindAsync(family.LadyWhistledownId);
+                    if (oldLW != null)
+                    {
+                        oldLW.IsLadyWhistledown = false;
+                        oldLW.Role = oldLW.Role == "Maîtresse de maison" || oldLW.Role == "Maîtresse de soirée" 
+                            ? oldLW.Role 
+                            : "Invité(e)";
+                    }
+                }
+                family.LadyWhistledownId = existingPlayer.Id;
+            }
+        }
+        // Si on retire le rôle Lady Whistledown, retirer la référence dans la famille
+        else if (!existingPlayer.IsLadyWhistledown && !string.IsNullOrEmpty(existingPlayer.FamilyId))
+        {
+            var family = await _context.Families.FindAsync(existingPlayer.FamilyId);
+            if (family != null && family.LadyWhistledownId == existingPlayer.Id)
+            {
+                family.LadyWhistledownId = null;
+            }
+        }
 
         await _context.SaveChangesAsync();
         return true;
@@ -110,11 +143,54 @@ public class DatabaseGameDataService
     public async Task SetLadyWhistledownAsync(string familyId, string playerId)
     {
         var family = await _context.Families.FindAsync(familyId);
-        if (family != null)
+        if (family == null)
+            return;
+
+        // Si on retire Lady Whistledown (playerId == null)
+        if (string.IsNullOrEmpty(playerId))
         {
-            family.LadyWhistledownId = playerId;
-            await _context.SaveChangesAsync();
+            // Trouver l'ancien Lady Whistledown et retirer le rôle
+            if (family.LadyWhistledownId != null)
+            {
+                var oldLadyWhistledown = await _context.Players.FindAsync(family.LadyWhistledownId);
+                if (oldLadyWhistledown != null)
+                {
+                    oldLadyWhistledown.IsLadyWhistledown = false;
+                    oldLadyWhistledown.Role = oldLadyWhistledown.Role == "Maîtresse de maison" || oldLadyWhistledown.Role == "Maîtresse de soirée" 
+                        ? oldLadyWhistledown.Role 
+                        : "Invité(e)";
+                }
+            }
+            
+            family.LadyWhistledownId = null;
         }
+        else
+        {
+            // Vérifier que le joueur existe et appartient à cette famille
+            var newLadyWhistledown = await _context.Players.FindAsync(playerId);
+            if (newLadyWhistledown == null || (newLadyWhistledown.FamilyId != familyId && newLadyWhistledown.Role != "Maîtresse de maison"))
+                return;
+
+            // Retirer le rôle de l'ancien Lady Whistledown s'il existe
+            if (family.LadyWhistledownId != null && family.LadyWhistledownId != playerId)
+            {
+                var oldLadyWhistledown = await _context.Players.FindAsync(family.LadyWhistledownId);
+                if (oldLadyWhistledown != null)
+                {
+                    oldLadyWhistledown.IsLadyWhistledown = false;
+                    oldLadyWhistledown.Role = oldLadyWhistledown.Role == "Maîtresse de maison" || oldLadyWhistledown.Role == "Maîtresse de soirée" 
+                        ? oldLadyWhistledown.Role 
+                        : "Invité(e)";
+                }
+            }
+
+            // Définir le nouveau Lady Whistledown
+            family.LadyWhistledownId = playerId;
+            newLadyWhistledown.IsLadyWhistledown = true;
+            newLadyWhistledown.Role = "Lady Whistledown";
+        }
+
+        await _context.SaveChangesAsync();
     }
 
     public async Task ToggleVotingAsync(string familyId, bool enabled)
