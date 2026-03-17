@@ -1,3 +1,5 @@
+@inject NotificationService NotificationService
+
 <header class="site-header">
     <div class="header-flowers">
         <img src="images/FleursBG.png" alt="Fleurs" />
@@ -9,14 +11,18 @@
             </div>
         </a>
         
-        <button @onclick="ToggleMenu" class="burger-button-modern" aria-label="Menu">
-            <div class="burger-icon">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <span class="burger-label">Menu</span>
-        </button>
+        <div class="header-right">
+            <NotificationBell />
+            
+            <button @onclick="ToggleMenu" class="burger-button-modern" aria-label="Menu">
+                <div class="burger-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span class="burger-label">Menu</span>
+            </button>
+        </div>
     </div>
     
     @if (isMenuOpen)

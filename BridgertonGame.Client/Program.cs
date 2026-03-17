@@ -14,5 +14,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<NotificationService>();
+builder.Services.AddScoped<PushNotificationService>();
 
 await builder.Build().RunAsync();

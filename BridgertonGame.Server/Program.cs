@@ -1,5 +1,6 @@
 using BridgertonGame.Server.Services;
 using BridgertonGame.Server.Data;
+using BridgertonGame.Server.Hubs;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// Add SignalR
+builder.Services.AddSignalR();
 
 // Add Database - MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -47,7 +51,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowBlazorClient",
         policy => policy.WithOrigins("https://localhost:7113", "http://localhost:5257", "https://localhost:5001", "http://localhost:5000")
                         .AllowAnyMethod()
-                        .AllowAnyHeader());
+                        .AllowAnyHeader()
+                        .AllowCredentials());
 });
 
 var app = builder.Build();
@@ -79,6 +84,7 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/notificationHub");
 app.MapFallbackToFile("index.html");
 
 app.Run();

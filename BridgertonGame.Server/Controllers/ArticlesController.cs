@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using BridgertonGame.Shared.Models;
 using BridgertonGame.Shared.DTOs;
 using BridgertonGame.Server.Services;
+using BridgertonGame.Server.Hubs;
 
 namespace BridgertonGame.Server.Controllers;
 
@@ -10,10 +12,12 @@ namespace BridgertonGame.Server.Controllers;
 public class ArticlesController : ControllerBase
 {
     private readonly DatabaseGameDataService _gameData;
+    private readonly IHubContext<NotificationHub> _hubContext;
 
-    public ArticlesController(DatabaseGameDataService gameData)
+    public ArticlesController(DatabaseGameDataService gameData, IHubContext<NotificationHub> hubContext)
     {
         _gameData = gameData;
+        _hubContext = hubContext;
     }
 
     [HttpGet]
@@ -58,6 +62,14 @@ public class ArticlesController : ControllerBase
             request.FamilyId,
             family.Name
         );
+
+        // Envoyer une notification à tous les clients connectés
+        await _hubContext.Clients.All.SendAsync("ReceiveNotification", 
+            "📰 Nouvelle Chronique !",
+            $"Lady Whistledown de la famille {family.Name} vient de publier une chronique mondaine.",
+            "article",
+            article.Id,
+            family.Name);
 
         return Ok(new PublishArticleResponse
         {

@@ -2,6 +2,8 @@
 @using BridgertonGame.Client.Shared
 @using BridgertonGame.Shared.Models
 @inject ApiService ApiService
+@inject NotificationService NotificationService
+@implements IDisposable
 
 <PageTitle>The Bridgerton Game</PageTitle>
 
@@ -73,7 +75,7 @@
                     <div class="newspaper-article">
                         <div class="newspaper-header">
                             <div class="newspaper-ornament">✦ ✦ ✦</div>
-                            <div class="newspaper-date">@article.PublishedAt.ToLocalTime().ToString("dd MMMM yyyy")</div>
+                            <div class="newspaper-date">@article.PublishedAt.ToLocalTime().ToString("dd MMMM yyyy 'à' HH:mm")</div>
                             <div class="newspaper-ornament">✦ ✦ ✦</div>
                         </div>
                         
@@ -104,5 +106,26 @@
     protected override async Task OnInitializedAsync()
     {
         articles = await ApiService.GetAllArticlesAsync();
+        
+        // S'abonner aux notifications pour rafraîchir automatiquement
+        NotificationService.OnNotificationReceived += HandleNewNotification;
+    }
+
+    private async void HandleNewNotification(Notification notification)
+    {
+        // Recharger les articles uniquement si c'est une notification d'article
+        if (notification.Type == "article")
+        {
+            await InvokeAsync(async () =>
+            {
+                articles = await ApiService.GetAllArticlesAsync();
+                StateHasChanged();
+            });
+        }
+    }
+
+    public void Dispose()
+    {
+        NotificationService.OnNotificationReceived -= HandleNewNotification;
     }
 }

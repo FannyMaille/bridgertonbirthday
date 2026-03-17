@@ -6,12 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>The Bridgerton Game</title>
     <base href="/" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Jeu Bridgerton - Chroniques de Lady Whistledown" />
+    <meta name="theme-color" content="#7172C5" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Bridgerton" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json" />
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/app.css" />
     <link rel="stylesheet" href="css/mon-espace.css" />
     <link rel="icon" type="image/png" href="images/LadyWithldown.png" />
+    <link rel="apple-touch-icon" href="images/LadyWithldown.png" />
     <link href="BridgertonGame.Client.styles.css" rel="stylesheet" />
 </head>
 
@@ -30,7 +42,22 @@
         <a href="" class="reload">Reload</a>
         <a class="dismiss">🗙</a>
     </div>
+    
     <script src="_framework/blazor.webassembly.js"></script>
+    <script src="js/push-notifications.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker enregistré:', registration);
+                })
+                .catch(error => {
+                    console.log('Erreur Service Worker:', error);
+                });
+        }
+    </script>
 </body>
 
 </html>
