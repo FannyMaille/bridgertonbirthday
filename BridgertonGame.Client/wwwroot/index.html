@@ -46,6 +46,25 @@
     <script src="_framework/blazor.webassembly.js"></script>
     <script src="js/push-notifications.js"></script>
     
+    <!-- Scroll to element script -->
+    <script>
+        window.scrollToElement = function(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                
+                // Ajouter temporairement une classe pour l'animation
+                element.classList.add('article-highlight');
+                setTimeout(() => {
+                    element.classList.remove('article-highlight');
+                }, 3000);
+            }
+        };
+    </script>
+    
     <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {

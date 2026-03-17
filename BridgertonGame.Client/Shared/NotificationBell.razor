@@ -154,11 +154,11 @@
     {
         NotificationService.MarkAsRead(notification.Id);
         
-        // Si c'est une notification d'article, naviguer vers la page d'accueil
-        if (notification.Type == "article")
+        // Si c'est une notification d'article, naviguer vers la page d'accueil avec l'ID de l'article
+        if (notification.Type == "article" && !string.IsNullOrEmpty(notification.ArticleId))
         {
             ClosePanel();
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo($"/#article-{notification.ArticleId}", forceLoad: false);
         }
     }
 

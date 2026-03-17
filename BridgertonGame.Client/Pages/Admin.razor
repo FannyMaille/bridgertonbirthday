@@ -46,8 +46,23 @@
 else
 {
     <div class="dashboard-layout">
+        <!-- Mobile Menu Toggle Button -->
+        <button class="mobile-menu-toggle @(isMobileMenuOpen ? "open" : "")" @onclick="ToggleMobileMenu">
+            <div class="burger-icon">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </button>
+
+        <!-- Sidebar Overlay for Mobile -->
+        @if (isMobileMenuOpen)
+        {
+            <div class="sidebar-overlay show" @onclick="CloseMobileMenu"></div>
+        }
+
         <!-- Sidebar -->
-        <div class="dashboard-sidebar">
+        <div class="dashboard-sidebar @(isMobileMenuOpen ? "open" : "")">
             <div class="sidebar-header">
                 <h1>🎩 Admin</h1>
                 <p class="subtitle">The Bridgerton Game</p>
@@ -859,6 +874,7 @@ else
     private string errorMessage = "";
     private string currentTab = "scores";
     private string searchQuery = "";
+    private bool isMobileMenuOpen = false;
 
     private List<Family>? families;
     private List<GameScore>? gameScores;
@@ -944,6 +960,22 @@ else
     private void SetTab(string tab)
     {
         currentTab = tab;
+        isMobileMenuOpen = false; // Fermer le menu mobile après sélection
+    }
+
+    private void SelectTab(string tab)
+    {
+        SetTab(tab);
+    }
+
+    private void ToggleMobileMenu()
+    {
+        isMobileMenuOpen = !isMobileMenuOpen;
+    }
+
+    private void CloseMobileMenu()
+    {
+        isMobileMenuOpen = false;
     }
 
     private async Task UpdateScore(string gameName, string familyId, string? value)

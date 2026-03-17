@@ -11,6 +11,7 @@ public class NotificationService : IAsyncDisposable
 
     public event Action<Notification>? OnNotificationReceived;
     public event Action? OnNotificationsChanged;
+    public event Action<string>? OnArticleDeleted;
 
     public IReadOnlyList<Notification> Notifications => _notifications.AsReadOnly();
 
@@ -45,6 +46,12 @@ public class NotificationService : IAsyncDisposable
                 OnNotificationReceived?.Invoke(notification);
                 OnNotificationsChanged?.Invoke();
             });
+
+        // Écouter les suppressions d'articles
+        _hubConnection.On<string>("ArticleDeleted", (articleId) =>
+        {
+            OnArticleDeleted?.Invoke(articleId);
+        });
     }
 
     public async Task StartAsync()
