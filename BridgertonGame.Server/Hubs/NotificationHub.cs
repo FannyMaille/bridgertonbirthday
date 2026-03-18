@@ -9,6 +9,11 @@ public class NotificationHub : Hub
         await Clients.All.SendAsync("ReceiveNotification", title, message, type);
     }
 
+    public async Task NotifyQuizUpdate(int questionNumber, bool isEnabled)
+    {
+        await Clients.All.SendAsync("QuizUpdated", questionNumber, isEnabled);
+    }
+
     public override async Task OnConnectedAsync()
     {
         await base.OnConnectedAsync();

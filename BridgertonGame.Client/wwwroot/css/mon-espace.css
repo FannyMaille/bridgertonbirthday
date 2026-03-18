@@ -336,3 +336,41 @@
             inset 0 2px 4px rgba(255, 255, 255, 0.5);
     }
 }
+
+/* ========================================
+   QUIZ STYLES
+   ======================================== */
+
+.quiz-option {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    background: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.quiz-option:hover {
+    background: #e9ecef;
+    border-color: #7172C5;
+    transform: translateX(5px);
+}
+
+.quiz-option.selected {
+    background: linear-gradient(135deg, rgba(113, 114, 197, 0.1) 0%, rgba(147, 148, 213, 0.1) 100%);
+    border-color: #7172C5;
+    border-width: 3px;
+    box-shadow: 0 4px 12px rgba(113, 114, 197, 0.2);
+}
+
+.quiz-option input[type="radio"] {
+    cursor: pointer;
+}
+
+.quiz-option span {
+    flex: 1;
+    color: #2c3e50;
+}
