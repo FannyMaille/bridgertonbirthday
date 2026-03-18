@@ -132,7 +132,7 @@
         }
     }
 
-    private async void HandleNewNotification(Notification notification)
+    private async Task HandleNewNotification(Notification notification)
     {
         // Recharger les articles uniquement si c'est une notification d'article
         if (notification.Type == "article" && !string.IsNullOrEmpty(notification.ArticleId))
@@ -146,7 +146,7 @@
         }
     }
 
-    private async void HandleArticleDeleted(string articleId)
+    private async Task HandleArticleDeleted(string articleId)
     {
         await InvokeAsync(async () =>
         {

@@ -85,7 +85,7 @@
         pushEnabled = await PushNotificationService.IsSupportedAsync();
     }
 
-    private async void HandleNewNotification(Notification notification)
+    private async Task HandleNewNotification(Notification notification)
     {
         await InvokeAsync(async () =>
         {

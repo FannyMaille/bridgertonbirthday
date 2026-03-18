@@ -82,6 +82,10 @@ public class ArticlesController : ControllerBase
     public async Task<ActionResult> Delete(string id)
     {
         await _gameData.DeleteArticleAsync(id);
+        
+        // Notifier tous les clients que l'article a été supprimé
+        await _hubContext.Clients.All.SendAsync("ArticleDeleted", id);
+        
         return Ok();
     }
 

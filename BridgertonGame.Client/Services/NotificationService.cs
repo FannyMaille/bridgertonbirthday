@@ -9,9 +9,9 @@ public class NotificationService : IAsyncDisposable
     private readonly HubConnection _hubConnection;
     private readonly List<Notification> _notifications = new();
 
-    public event Action<Notification>? OnNotificationReceived;
+    public event Func<Notification, Task>? OnNotificationReceived;
     public event Action? OnNotificationsChanged;
-    public event Action<string>? OnArticleDeleted;
+    public event Func<string, Task>? OnArticleDeleted;
 
     public IReadOnlyList<Notification> Notifications => _notifications.AsReadOnly();
 
@@ -23,7 +23,7 @@ public class NotificationService : IAsyncDisposable
             .Build();
 
         _hubConnection.On<string, string, string, string?, string?>("ReceiveNotification", 
-            (title, message, type, articleId, familyName) =>
+            async (title, message, type, articleId, familyName) =>
             {
                 var notification = new Notification
                 {
@@ -43,14 +43,21 @@ public class NotificationService : IAsyncDisposable
                     _notifications.RemoveAt(_notifications.Count - 1);
                 }
 
-                OnNotificationReceived?.Invoke(notification);
+                if (OnNotificationReceived != null)
+                {
+                    await OnNotificationReceived.Invoke(notification);
+                }
+                
                 OnNotificationsChanged?.Invoke();
             });
 
         // Écouter les suppressions d'articles
-        _hubConnection.On<string>("ArticleDeleted", (articleId) =>
+        _hubConnection.On<string>("ArticleDeleted", async (articleId) =>
         {
-            OnArticleDeleted?.Invoke(articleId);
+            if (OnArticleDeleted != null)
+            {
+                await OnArticleDeleted.Invoke(articleId);
+            }
         });
     }
 
