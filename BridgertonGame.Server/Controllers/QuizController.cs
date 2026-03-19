@@ -252,6 +252,7 @@ public class QuizController : ControllerBase
                 var family = await _context.Families.FindAsync(player.FamilyId);
                 familyResponses.Add(new FamilyQuizResponse
                 {
+                    PlayerId = player.Id,
                     FamilyId = player.FamilyId,
                     FamilyName = family?.Name ?? "Inconnue",
                     PlayerName = player.Name,
@@ -306,6 +307,7 @@ public class QuizController : ControllerBase
                     var family = await _context.Families.FindAsync(player.FamilyId);
                     familyResponses.Add(new FamilyQuizResponse
                     {
+                        PlayerId = player.Id,
                         FamilyId = player.FamilyId,
                         FamilyName = family?.Name ?? "Inconnue",
                         PlayerName = player.Name,
@@ -335,5 +337,65 @@ public class QuizController : ControllerBase
         }
 
         return Ok(allStats);
+    }
+
+    // GET: api/quiz/family-summary
+    [HttpGet("family-summary")]
+    public async Task<ActionResult<List<FamilyQuizSummary>>> GetFamilySummary()
+    {
+        var families = await _context.Families.ToListAsync();
+        var allAnswers = await _context.QuizAnswers.ToListAsync();
+        
+        var summary = new List<FamilyQuizSummary>();
+
+        foreach (var family in families.OrderBy(f => f.Name))
+        {
+            var familyPlayers = await _context.Players
+                .Where(p => p.FamilyId == family.Id)
+                .Select(p => p.Id)
+                .ToListAsync();
+
+            var familyAnswers = allAnswers.Where(a => familyPlayers.Contains(a.PlayerId)).ToList();
+            
+            summary.Add(new FamilyQuizSummary
+            {
+                FamilyId = family.Id,
+                FamilyName = family.Name,
+                CorrectAnswers = familyAnswers.Count(a => a.IsCorrect),
+                TotalAnswers = familyAnswers.Count
+            });
+        }
+
+        return Ok(summary);
+    }
+
+    // DELETE: api/quiz/answers/all
+    [HttpDelete("answers/all")]
+    public async Task<IActionResult> DeleteAllAnswers()
+    {
+        var allAnswers = await _context.QuizAnswers.ToListAsync();
+        _context.QuizAnswers.RemoveRange(allAnswers);
+        await _context.SaveChangesAsync();
+        
+        // Notifier tous les clients de la réinitialisation
+        await _hubContext.Clients.All.SendAsync("QuizReset");
+        
+        return Ok(new { message = $"{allAnswers.Count} réponse(s) supprimée(s)", count = allAnswers.Count });
+    }
+
+    // DELETE: api/quiz/answers/{playerId}/{questionNumber}
+    [HttpDelete("answers/{playerId}/{questionNumber}")]
+    public async Task<IActionResult> DeletePlayerAnswer(string playerId, int questionNumber)
+    {
+        var answer = await _context.QuizAnswers
+            .FirstOrDefaultAsync(a => a.PlayerId == playerId && a.QuestionNumber == questionNumber);
+        
+        if (answer == null)
+            return NotFound(new { message = "Réponse introuvable" });
+
+        _context.QuizAnswers.Remove(answer);
+        await _context.SaveChangesAsync();
+        
+        return Ok(new { message = "Réponse supprimée" });
     }
 }

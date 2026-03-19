@@ -40,10 +40,20 @@ public class QuizStatistics
 
 public class FamilyQuizResponse
 {
+    public string PlayerId { get; set; } = string.Empty;
     public string FamilyId { get; set; } = string.Empty;
     public string FamilyName { get; set; } = string.Empty;
     public string PlayerName { get; set; } = string.Empty;
     public string SelectedAnswer { get; set; } = string.Empty;
     public bool IsCorrect { get; set; }
     public DateTime AnsweredAt { get; set; }
+}
+
+public class FamilyQuizSummary
+{
+    public string FamilyId { get; set; } = string.Empty;
+    public string FamilyName { get; set; } = string.Empty;
+    public int CorrectAnswers { get; set; }
+    public int TotalAnswers { get; set; }
+    public double SuccessRate => TotalAnswers > 0 ? (CorrectAnswers * 100.0 / TotalAnswers) : 0;
 }

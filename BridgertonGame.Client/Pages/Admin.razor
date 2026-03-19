@@ -719,7 +719,7 @@ else
                                                                     <div>
                                                                         <strong>@vote.VoterName</strong> a voté pour <strong>@vote.VotedForName</strong>
                                                                     </div>
-                                                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                                                    <div style="display: flex, gap: 8px; align-items: center;">
                                                                         <span style="font-weight: bold; color: @(vote.IsCorrect ? "#28a745" : "#dc3545");">
                                                                             @(vote.IsCorrect ? "✓" : "✗") @(vote.PointsAwarded > 0 ? "+" : "")@vote.PointsAwarded pts
                                                                         </span>
@@ -764,7 +764,7 @@ else
                             <h3>Contrôle du Quiz</h3>
                         </div>
                         <div class="card-body">
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                            <div class="quiz-control-grid">
                                 <div class="info-card">
                                     <div class="info-card-header">
                                         <div class="info-card-title">État du Quiz</div>
@@ -794,6 +794,56 @@ else
                         </div>
                     </div>
 
+                    @* Family Quiz Summary *@
+                    @if (familyQuizSummary != null && familyQuizSummary.Any(f => f.TotalAnswers > 0))
+                    {
+                        <div class="modern-card" style="margin-bottom: 30px;">
+                            <div class="card-header">
+                                <div class="header-icon">🏆</div>
+                                <h3>Résultats par Famille</h3>
+                            </div>
+                            <div class="card-body">
+                                <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                                    <div style="flex: 1; min-width: 250px;">
+                                        <p style="margin: 0; color: #856404; font-weight: 600;">
+                                            ⚠️ Attention : Cette action supprimera TOUTES les réponses de TOUS les joueurs
+                                        </p>
+                                        <p style="margin: 5px 0 0 0; color: #856404; font-size: 0.9rem;">
+                                            Total actuel : @(quizStatistics?.Sum(s => s.TotalAnswers) ?? 0) réponse(s) enregistrée(s)
+                                        </p>
+                                    </div>
+                                    <button class="modern-btn btn-danger" @onclick="ResetAllQuizAnswers" style="white-space: nowrap;">
+                                        🗑️ Réinitialiser tout le quiz
+                                    </button>
+                                </div>
+
+                                <div class="quiz-summary-grid">
+                                    @foreach (var summary in familyQuizSummary.OrderByDescending(s => s.SuccessRate))
+                                    {
+                                        var rankColor = summary.SuccessRate >= 80 ? "#28a745" : 
+                                                       summary.SuccessRate >= 60 ? "#ffc107" : 
+                                                       summary.SuccessRate >= 40 ? "#fd7e14" : "#dc3545";
+                                        
+                                        <div style="padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, white 100%); border-radius: 10px; border: 2px solid #e8ebef; text-align: center;">
+                                            <div style="font-weight: 700; color: #7172C5; font-size: 1.1rem; margin-bottom: 10px;">
+                                                @summary.FamilyName
+                                            </div>
+                                            <div style="font-size: 2.5rem; font-weight: bold; color: @rankColor; margin-bottom: 5px;">
+                                                @summary.CorrectAnswers/@summary.TotalAnswers
+                                            </div>
+                                            <div style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">
+                                                @summary.SuccessRate.ToString("F0")% de réussite
+                                            </div>
+                                            <div style="width: 100%; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden;">
+                                                <div style="width: @summary.SuccessRate%; height: 100%; background: @rankColor; transition: width 0.3s ease;"></div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
                     @* Questions Management *@
                     <div class="section-header">
                         <h3 style="margin: 0;">Questions</h3>
@@ -807,10 +857,17 @@ else
                         <div class="cards-grid">
                             @foreach (var question in quizQuestions.OrderBy(q => q.QuestionNumber))
                             {
+                                var stat = quizStatistics?.FirstOrDefault(s => s.QuestionNumber == question.QuestionNumber);
+                                var hasAnswers = stat != null && stat.TotalAnswers > 0;
+                                
                                 <div class="info-card" style="position: relative;">
                                     <div class="info-card-header">
                                         <div class="info-card-title">Question @question.QuestionNumber</div>
-                                        <div style="display: flex; gap: 8px;">
+                                        <div style="display: flex; gap: 8px; align-items: center;">
+                                            @if (hasAnswers)
+                                            {
+                                                <span class="info-card-badge badge-info">@stat.TotalAnswers réponse(s)</span>
+                                            }
                                             <button class="icon-btn btn-primary" @onclick="() => EditQuestion(question)" title="Modifier">
                                                 ✏️
                                             </button>
@@ -839,6 +896,84 @@ else
                                         <div style="margin-top: 10px; padding: 10px; background: #e7f3ff; border-radius: 5px; text-align: center;">
                                             <strong>Bonne réponse:</strong> <span style="color: #28a745; font-weight: bold;">@question.CorrectAnswer</span>
                                         </div>
+                                        
+                                        @* Statistiques intégrées *@
+                                        @if (hasAnswers)
+                                        {
+                                            <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 2px solid #e8ebef;">
+                                                <div style="font-weight: 600; color: #7172C5; margin-bottom: 10px; text-align: center;">
+                                                    📊 Statistiques (@stat.TotalAnswers réponse(s))
+                                                </div>
+                                                
+                                                <div style="display: grid; gap: 8px; margin-bottom: 15px;">
+                                                    @foreach (var option in new[] { "A", "B", "C", "D" })
+                                                    {
+                                                        var count = stat.AnswerCounts.ContainsKey(option) ? stat.AnswerCounts[option] : 0;
+                                                        var percentage = stat.TotalAnswers > 0 ? (count * 100.0 / stat.TotalAnswers) : 0;
+                                                        var isCorrect = option == stat.CorrectAnswer;
+                                                        
+                                                        <div style="padding: 8px; background: white; border-radius: 5px; border-left: 3px solid @(isCorrect ? "#28a745" : "#6c757d");">
+                                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                                                <strong>@option</strong>
+                                                                <span style="color: @(isCorrect ? "#28a745" : "#6c757d"); font-weight: 600;">
+                                                                    @count (@percentage.ToString("F0")%)
+                                                                </span>
+                                                            </div>
+                                                            <div style="width: 100%; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden;">
+                                                                <div style="width: @percentage%; height: 100%; background: @(isCorrect ? "#28a745" : "#6c757d"); transition: width 0.3s ease;"></div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+
+                                                @* Détails des réponses par famille *@
+                                                @if (stat.FamilyResponses != null && stat.FamilyResponses.Any())
+                                                {
+                                                    <details>
+                                                        <summary style="cursor: pointer; font-weight: 600; color: #495057; padding: 10px; background: white; border-radius: 8px; border: 2px solid #e8ebef; display: flex; justify-content: space-between; align-items: center;">
+                                                            <span>👥 Qui a répondu</span>
+                                                            <span style="background: #7172C5; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">
+                                                                @stat.FamilyResponses.Count
+                                                            </span>
+                                                        </summary>
+                                                        <div style="margin-top: 10px; max-height: 300px; overflow-y: auto;">
+                                                            @foreach (var response in stat.FamilyResponses.OrderBy(r => r.FamilyName))
+                                                            {
+                                                                <div style="padding: 12px; margin: 8px 0; background: white; border-left: 4px solid @(response.IsCorrect ? "#28a745" : "#dc3545"); border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                                                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                                                        <div style="flex: 1; min-width: 150px;">
+                                                                            <div style="font-weight: 700; color: #7172C5; margin-bottom: 4px; font-size: 0.9rem;">
+                                                                                👥 @response.FamilyName
+                                                                            </div>
+                                                                            <div style="font-size: 0.85rem; color: #666;">
+                                                                                🎭 @response.PlayerName
+                                                                            </div>
+                                                                        </div>
+                                                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                                                            <div style="text-align: right;">
+                                                                                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: @(response.IsCorrect ? "#d4edda" : "#f8d7da"); border-radius: 20px;">
+                                                                                    <strong style="color: @(response.IsCorrect ? "#28a745" : "#dc3545");">@response.SelectedAnswer</strong>
+                                                                                    <span style="font-size: 1.2rem;">@(response.IsCorrect ? "✓" : "✗")</span>
+                                                                                </div>
+                                                                                <div style="font-size: 0.75rem; color: #999; margin-top: 4px;">
+                                                                                    @response.AnsweredAt.ToLocalTime().ToString("HH:mm")
+                                                                                </div>
+                                                                            </div>
+                                                                            <button class="icon-btn btn-danger" 
+                                                                                    @onclick="() => DeleteIndividualAnswer(response.PlayerId, question.QuestionNumber, response.PlayerName)" 
+                                                                                    title="Supprimer cette réponse"
+                                                                                    style="padding: 6px 10px; font-size: 0.85rem;">
+                                                                                🗑️
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </details>
+                                                }
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             }
@@ -849,98 +984,6 @@ else
                         <div style="text-align: center; padding: 60px 20px; color: #999;">
                             <div style="font-size: 3rem; margin-bottom: 20px;">📝</div>
                             <p style="font-size: 1.2rem;">Aucune question créée</p>
-                        </div>
-                    }
-
-                    @* Statistics Section *@
-                    @if (quizStatistics != null && quizStatistics.Any())
-                    {
-                        <div class="section-header" style="margin-top: 40px;">
-                            <h3 style="margin: 0;">📊 Statistiques des Réponses</h3>
-                        </div>
-
-                        <div class="cards-grid">
-                            @foreach (var stat in quizStatistics.OrderBy(s => s.QuestionNumber))
-                            {
-                                <div class="info-card">
-                                    <div class="info-card-header">
-                                        <div class="info-card-title">Question @stat.QuestionNumber</div>
-                                        <span class="info-card-badge badge-info">@stat.TotalAnswers réponse(s)</span>
-                                    </div>
-                                    
-                                    <div style="padding: 15px;">
-                                        <div style="margin-bottom: 10px; text-align: center; padding: 8px; background: #d4edda; border-radius: 5px;">
-                                            <strong>Bonne réponse:</strong> <span style="color: #28a745; font-weight: bold;">@stat.CorrectAnswer</span>
-                                        </div>
-                                        
-                                        <div style="display: grid; gap: 8px; margin-bottom: 15px;">
-                                            @foreach (var option in new[] { "A", "B", "C", "D" })
-                                            {
-                                                var count = stat.AnswerCounts.ContainsKey(option) ? stat.AnswerCounts[option] : 0;
-                                                var percentage = stat.TotalAnswers > 0 ? (count * 100.0 / stat.TotalAnswers) : 0;
-                                                var isCorrect = option == stat.CorrectAnswer;
-                                                
-                                                <div style="padding: 8px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid @(isCorrect ? "#28a745" : "#6c757d");">
-                                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                                        <strong>@option</strong>
-                                                        <span style="color: @(isCorrect ? "#28a745" : "#6c757d"); font-weight: 600;">
-                                                            @count (@percentage.ToString("F0")%)
-                                                        </span>
-                                                    </div>
-                                                    <div style="width: 100%; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden;">
-                                                        <div style="width: @percentage%; height: 100%; background: @(isCorrect ? "#28a745" : "#6c757d"); transition: width 0.3s ease;"></div>
-                                                    </div>
-                                                </div>
-                                            }
-                                        </div>
-
-                                        @* Détails des réponses par famille *@
-                                        @if (stat.FamilyResponses != null && stat.FamilyResponses.Any())
-                                        {
-                                            <details style="margin-top: 15px;">
-                                                <summary style="cursor: pointer; font-weight: 600; color: #495057; padding: 10px; background: white; border-radius: 8px; border: 2px solid #e8ebef; display: flex; justify-content: space-between; align-items: center;">
-                                                    <span>👥 Qui a répondu</span>
-                                                    <span style="background: #7172C5; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">
-                                                        @stat.FamilyResponses.Count
-                                                    </span>
-                                                </summary>
-                                                <div style="margin-top: 10px; max-height: 300px; overflow-y: auto;">
-                                                    @foreach (var response in stat.FamilyResponses.OrderBy(r => r.FamilyName))
-                                                    {
-                                                        <div style="padding: 12px; margin: 8px 0; background: white; border-left: 4px solid @(response.IsCorrect ? "#28a745" : "#dc3545"); border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                                                                <div style="flex: 1; min-width: 200px;">
-                                                                    <div style="font-weight: 700; color: #7172C5; margin-bottom: 4px;">
-                                                                        👥 Famille @response.FamilyName
-                                                                    </div>
-                                                                    <div style="font-size: 0.9rem; color: #666;">
-                                                                        🎭 @response.PlayerName
-                                                                    </div>
-                                                                </div>
-                                                                <div style="text-align: right;">
-                                                                    <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: @(response.IsCorrect ? "#d4edda" : "#f8d7da"); border-radius: 20px;">
-                                                                        <strong style="color: @(response.IsCorrect ? "#28a745" : "#dc3545");">@response.SelectedAnswer</strong>
-                                                                        <span style="font-size: 1.2rem;">@(response.IsCorrect ? "✓" : "✗")</span>
-                                                                    </div>
-                                                                    <div style="font-size: 0.75rem; color: #999; margin-top: 4px;">
-                                                                        @response.AnsweredAt.ToLocalTime().ToString("HH:mm")
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    }
-                                                </div>
-                                            </details>
-                                        }
-                                        else
-                                        {
-                                            <div style="margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 8px; text-align: center; color: #856404; font-size: 0.9rem;">
-                                                👥 Aucune réponse pour cette question
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            }
                         </div>
                     }
                 </div>
@@ -1162,6 +1205,7 @@ else
     private bool isCreatingQuestion = false;
     private string questionValidationError = "";
     private int currentQuestionNumber = 0;
+    private List<FamilyQuizSummary>? familyQuizSummary;
 
     private HashSet<string> visibleCodes = new();
     private HashSet<string> visibleRoles = new();
@@ -1197,6 +1241,7 @@ else
             currentQuestionNumber = quizState?.CurrentQuestionNumber ?? 0;
             quizQuestions = await Http.GetFromJsonAsync<List<Quiz>>("api/quiz/questions");
             quizStatistics = await Http.GetFromJsonAsync<List<QuizStatistics>>("api/quiz/all-statistics");
+            familyQuizSummary = await Http.GetFromJsonAsync<List<FamilyQuizSummary>>("api/quiz/family-summary");
         }
         catch (Exception ex)
         {
@@ -1876,5 +1921,64 @@ else
         
         questionValidationError = "";
         return true;
+    }
+
+    private async Task ResetAllQuizAnswers()
+    {
+        var totalAnswers = quizStatistics?.Sum(s => s.TotalAnswers) ?? 0;
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"⚠️ ATTENTION ⚠️\n\n" +
+            $"Vous êtes sur le point de supprimer TOUTES les réponses au quiz !\n\n" +
+            $"Total de réponses : {totalAnswers}\n\n" +
+            $"Cette action est IRRÉVERSIBLE.\n\n" +
+            $"Voulez-vous vraiment continuer ?");
+        
+        if (confirmed)
+        {
+            try
+            {
+                var response = await Http.DeleteAsync("api/quiz/answers/all");
+                if (response.IsSuccessStatusCode)
+                {
+                    await LoadQuizData();
+                    await JSRuntime.InvokeVoidAsync("alert", $"✅ Toutes les réponses ont été supprimées avec succès !\n\nLe quiz a été réinitialisé.");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "❌ Erreur lors de la réinitialisation du quiz.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"❌ Erreur : {ex.Message}");
+            }
+        }
+    }
+
+    private async Task DeleteIndividualAnswer(string playerId, int questionNumber, string playerName)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"Supprimer la réponse de '{playerName}' à la Question {questionNumber} ?\n\n" +
+            $"Cette action est irréversible.");
+        
+        if (confirmed)
+        {
+            try
+            {
+                var response = await Http.DeleteAsync($"api/quiz/answers/{playerId}/{questionNumber}");
+                if (response.IsSuccessStatusCode)
+                {
+                    await LoadQuizData();
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "❌ Erreur lors de la suppression de la réponse.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"❌ Erreur : {ex.Message}");
+            }
+        }
     }
 }
