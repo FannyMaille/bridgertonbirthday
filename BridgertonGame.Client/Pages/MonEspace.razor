@@ -1,8 +1,4 @@
 @page "/mon-espace"
-@using BridgertonGame.Client.Shared
-@using BridgertonGame.Shared.Models
-@using BridgertonGame.Shared.DTOs
-@using System.Net.Http.Json
 @using Microsoft.AspNetCore.SignalR.Client
 @inject ApiService ApiService
 @inject AuthService AuthService
@@ -94,6 +90,41 @@
             }
             else if (currentFamily != null)
             {
+                <!-- Quiz Section -->
+                @if (quizState?.IsEnabled == true && quizState.CurrentQuestionNumber > 0)
+                {
+                    <div class="modern-card" style="margin-top: 30px;">
+                        <div class="card-header">
+                            <div class="header-icon">📝</div>
+                            <h3>Quiz disponible</h3>
+                        </div>
+                        <div class="card-body" style="text-align: center; padding: 30px;">
+                            <p style="font-size: 1.1rem; margin-bottom: 20px; color: #2c3e50;">
+                                @if (currentPlayerAnswer != null)
+                                {
+                                    <span>✅ Vous avez répondu à la question @currentQuestion?.QuestionNumber</span>
+                                }
+                                else
+                                {
+                                    <span>Une nouvelle question vous attend !</span>
+                                }
+                            </p>
+                            <button class="modern-btn primary-btn"
+                                    style="font-size: 1.1rem; padding: 15px 40px;"
+                                    @onclick="GoToQuiz">
+                                @if (currentPlayerAnswer != null)
+                                {
+                                    <span>Voir ma réponse</span>
+                                }
+                                else
+                                {
+                                    <span>Répondre au quiz 📝</span>
+                                }
+                            </button>
+                        </div>
+                    </div>
+                }
+
                 <!-- Stats Cards -->
                 <div class="stats-grid">
                     <div class="stat-card stat-rank">
@@ -111,95 +142,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Family Section -->
-                <div class="section-divider">
-                    <div class="flower-line"><img src="images/Ornement.png" alt="" /></div>
-                    <h3>Ma Famille<br/>@currentFamily.Name</h3>
-                    <div class="flower-line"><img src="images/Ornement.png" alt="" /></div>
-                </div>
-
-                <div class="characters-grid-modern">
-                    @foreach (var member in familyMembers)
-                    {
-                        <div class="character-card-modern">
-                            <div class="character-card-inner">
-                                <div class="character-image-wrapper-large">
-                                    <img src="@member.ImageUrl" alt="@member.Name" class="character-image-large" @onclick="() => ShowImageModal(member.ImageUrl)" />
-                                </div>
-                                <div class="character-info-modern">
-                                    <div class="character-title-text">@member.Title</div>
-                                    <div class="character-name-text">@member.Name</div>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-
-                <!-- Quiz Section -->
-                @if (quizState?.IsEnabled == true && quizState.CurrentQuestionNumber > 0 && currentQuestion != null)
-                {
-                    <div class="modern-card" style="margin-top: 30px;">
-                        <div class="card-header">
-                            <div class="header-icon">📝</div>
-                            <h3>Quiz - Question @currentQuestion.QuestionNumber</h3>
-                        </div>
-                        <div class="card-body">
-                            @if (currentPlayerAnswer != null)
-                            {
-                                <!-- Affichage de la réponse déjà donnée -->
-                                <div style="background: #e7f3ff; border-left: 4px solid #2196F3; padding: 20px; border-radius: 8px; text-align: center;">
-                                    <div style="font-size: 1.1rem; color: #1976D2; margin-bottom: 15px;">
-                                        ✅ <strong>Vous avez déjà répondu à cette question !</strong>
-                                    </div>
-                                    <div style="padding: 15px; background: white; border-radius: 8px; margin-bottom: 15px;">
-                                        <p style="font-weight: 600; color: #2c3e50; margin-bottom: 15px;">@currentQuestion.Question</p>
-                                        <div style="padding: 10px; background: #f8f9fa; border-radius: 5px; border-left: 3px solid #2196F3;">
-                                            <strong>Votre réponse:</strong> <span style="color: #1565C0; font-weight: bold;">@currentPlayerAnswer.SelectedAnswer</span>
-                                        </div>
-                                    </div>
-                                    <div style="font-size: 0.9rem; color: #555;">
-                                        💡 <em>Répondu le @currentPlayerAnswer.AnsweredAt.ToLocalTime().ToString("dd/MM/yyyy à HH:mm")</em>
-                                    </div>
-                                </div>
-                            }
-                            else
-                            {
-                                <!-- Formulaire de réponse -->
-                                <div style="padding: 15px;">
-                                    <p style="font-weight: 600; color: #2c3e50; margin-bottom: 20px; font-size: 1.1rem;">@currentQuestion.Question</p>
-                                    
-                                    <div style="display: grid; gap: 10px; margin-bottom: 20px;">
-                                        @foreach (var option in new[] { 
-                                            new { Letter = "A", Text = currentQuestion.OptionA },
-                                            new { Letter = "B", Text = currentQuestion.OptionB },
-                                            new { Letter = "C", Text = currentQuestion.OptionC },
-                                            new { Letter = "D", Text = currentQuestion.OptionD }
-                                        })
-                                        {
-                                            <label class="quiz-option @(selectedQuizAnswer == option.Letter ? "selected" : "")" 
-                                                   @onclick="() => selectedQuizAnswer = option.Letter">
-                                                <input type="radio" 
-                                                       name="quiz-answer" 
-                                                       value="@option.Letter" 
-                                                       checked="@(selectedQuizAnswer == option.Letter)"
-                                                       style="margin-right: 10px;" />
-                                                <span><strong>@option.Letter.</strong> @option.Text</span>
-                                            </label>
-                                        }
-                                    </div>
-                                    
-                                    <button class="modern-btn primary-btn" 
-                                            style="width: 100%;"
-                                            disabled="@(string.IsNullOrEmpty(selectedQuizAnswer))" 
-                                            @onclick="SubmitQuizAnswer">
-                                        Valider ma réponse
-                                    </button>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                }
 
                 <!-- Voting Section -->
                 @if (currentFamily.VotingEnabled)
@@ -235,8 +177,8 @@
                                         <option value="@member.Id">@member.Name</option>
                                     }
                                 </select>
-                                <button class="modern-btn primary-btn" 
-                                        disabled="@(string.IsNullOrEmpty(selectedMemberId))" 
+                                <button class="modern-btn primary-btn"
+                                        disabled="@(string.IsNullOrEmpty(selectedMemberId))"
                                         @onclick="ConfirmVote">
                                     Confirmer mon vote
                                 </button>
@@ -244,6 +186,30 @@
                         </div>
                     </div>
                 }
+
+                <!-- Family Section -->
+                <div class="section-divider">
+                    <div class="flower-line"><img src="images/Ornement.png" alt="" /></div>
+                    <h3>Ma Famille<br/>@currentFamily.Name</h3>
+                    <div class="flower-line"><img src="images/Ornement.png" alt="" /></div>
+                </div>
+
+                <div class="characters-grid-modern">
+                    @foreach (var member in familyMembers)
+                    {
+                        <div class="character-card-modern">
+                            <div class="character-card-inner">
+                                <div class="character-image-wrapper-large">
+                                    <img src="@member.ImageUrl" alt="@member.Name" class="character-image-large" @onclick="() => ShowImageModal(member.ImageUrl)" />
+                                </div>
+                                <div class="character-info-modern">
+                                    <div class="character-title-text">@member.Title</div>
+                                    <div class="character-name-text">@member.Name</div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
 
                 <!-- Publication Section -->
                 @if (currentPlayer.IsLadyWhistledown)
@@ -338,7 +304,7 @@
 
     // Quiz
     private QuizState? quizState;
-    private Quiz? currentQuestion;
+    private BridgertonGame.Shared.Models.Quiz? currentQuestion;
     private QuizAnswer? currentPlayerAnswer;
     private string selectedQuizAnswer = "";
 
@@ -469,7 +435,7 @@
             if (quizState?.IsEnabled == true && quizState.CurrentQuestionNumber > 0)
             {
                 // Charger la question courante
-                currentQuestion = await Http.GetFromJsonAsync<Quiz>($"api/quiz/questions/{quizState.CurrentQuestionNumber}");
+                currentQuestion = await Http.GetFromJsonAsync<BridgertonGame.Shared.Models.Quiz>($"api/quiz/questions/{quizState.CurrentQuestionNumber}");
                 
                 // Vérifier si le joueur a déjà répondu à cette question
                 try
@@ -781,5 +747,10 @@
             errorMessage = $"Erreur lors de l'envoi de la réponse: {ex.Message}";
             _ = ClearMessagesAfterDelay();
         }
+    }
+
+    private void GoToQuiz()
+    {
+        Navigation.NavigateTo("/quiz");
     }
 }
