@@ -12,6 +12,7 @@
 <PageTitle>Admin Dashboard - The Bridgerton Game</PageTitle>
 
 <link href="css/admin.css" rel="stylesheet" />
+<link href="css/admin-users-families.css" rel="stylesheet" />
 
 @if (!isAdmin)
 {
@@ -92,6 +93,10 @@ else
                 <button class="sidebar-menu-item @(currentTab == "reveal" ? "active" : "")" @onclick='() => SetTab("reveal")'>
                     <span class="sidebar-menu-icon">🎭</span>
                     <span>Révélations</span>
+                </button>
+                <button class="sidebar-menu-item @(currentTab == "quiz" ? "active" : "")" @onclick='() => SetTab("quiz")'>
+                    <span class="sidebar-menu-icon">📝</span>
+                    <span>Quiz</span>
                 </button>
             </div>
 
@@ -715,7 +720,7 @@ else
                                                                     <div>
                                                                         <strong>@vote.VoterName</strong> a voté pour <strong>@vote.VotedForName</strong>
                                                                     </div>
-                                                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                                                    <div style="display: flex, gap: 8px; align-items: center;">
                                                                         <span style="font-weight: bold; color: @(vote.IsCorrect ? "#28a745" : "#dc3545");">
                                                                             @(vote.IsCorrect ? "✓" : "✗") @(vote.PointsAwarded > 0 ? "+" : "")@vote.PointsAwarded pts
                                                                         </span>
@@ -742,6 +747,244 @@ else
                             <button class="modern-btn btn-success" style="padding: 16px 40px; font-size: 1.1rem;" @onclick="RevealAll">
                                 🎉 Révéler Toutes les Familles
                             </button>
+                        </div>
+                    }
+                </div>
+            }
+            else if (currentTab == "quiz")
+            {
+                <div class="dashboard-content">
+                    <div class="section-header">
+                        <h2 style="margin: 0;">📝 Gestion du Quiz</h2>
+                    </div>
+
+                    @* Quiz Control Panel *@
+                    <div class="modern-card" style="margin-bottom: 30px;">
+                        <div class="card-header">
+                            <div class="header-icon">⚙️</div>
+                            <h3>Contrôle du Quiz</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="quiz-control-grid">
+                                <div class="info-card">
+                                    <div class="info-card-header">
+                                        <div class="info-card-title">État du Quiz</div>
+                                        <span class="info-card-badge @(quizState?.IsEnabled == true ? "badge-success" : "badge-danger")">
+                                            @(quizState?.IsEnabled == true ? "ACTIF" : "INACTIF")
+                                        </span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked="@(quizState?.IsEnabled ?? false)" @onchange="e => ToggleQuizEnabled((bool)(e.Value ?? false))" />
+                                        <span>@(quizState?.IsEnabled == true ? "Quiz activé" : "Quiz désactivé")</span>
+                                    </label>
+                                </div>
+                                
+                                <div class="info-card">
+                                    <div class="info-card-header">
+                                        <div class="info-card-title">Question Affichée</div>
+                                    </div>
+                                    <select class="modern-select" @bind="currentQuestionNumber" @bind:after="UpdateCurrentQuestion">
+                                        <option value="0">Aucune question</option>
+                                        @foreach (var q in quizQuestions ?? new List<Quiz>())
+                                        {
+                                            <option value="@q.QuestionNumber">Question @q.QuestionNumber</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Family Quiz Summary *@
+                    @if (familyQuizSummary != null && familyQuizSummary.Any(f => f.TotalAnswers > 0))
+                    {
+                        <div class="modern-card" style="margin-bottom: 30px;">
+                            <div class="card-header">
+                                <div class="header-icon">🏆</div>
+                                <h3>Résultats par Famille</h3>
+                            </div>
+                            <div class="card-body">
+                                <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                                    <div style="flex: 1; min-width: 250px;">
+                                        <p style="margin: 0; color: #856404; font-weight: 600;">
+                                            ⚠️ Attention : Cette action supprimera TOUTES les réponses de TOUS les joueurs
+                                        </p>
+                                        <p style="margin: 5px 0 0 0; color: #856404; font-size: 0.9rem;">
+                                            Total actuel : @(quizStatistics?.Sum(s => s.TotalAnswers) ?? 0) réponse(s) enregistrée(s)
+                                        </p>
+                                    </div>
+                                    <button class="modern-btn btn-danger" @onclick="ResetAllQuizAnswers" style="white-space: nowrap;">
+                                        🗑️ Réinitialiser tout le quiz
+                                    </button>
+                                </div>
+
+                                <div class="quiz-summary-grid">
+                                    @foreach (var summary in familyQuizSummary.OrderByDescending(s => s.SuccessRate))
+                                    {
+                                        var rankColor = summary.SuccessRate >= 80 ? "#28a745" : 
+                                                       summary.SuccessRate >= 60 ? "#ffc107" : 
+                                                       summary.SuccessRate >= 40 ? "#fd7e14" : "#dc3545";
+                                        
+                                        <div style="padding: 15px; background: linear-gradient(135deg, #f8f9fa 0%, white 100%); border-radius: 10px; border: 2px solid #e8ebef; text-align: center;">
+                                            <div style="font-weight: 700; color: #7172C5; font-size: 1.1rem; margin-bottom: 10px;">
+                                                @summary.FamilyName
+                                            </div>
+                                            <div style="font-size: 2.5rem; font-weight: bold; color: @rankColor; margin-bottom: 5px;">
+                                                @summary.CorrectAnswers/@summary.TotalAnswers
+                                            </div>
+                                            <div style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">
+                                                @summary.SuccessRate.ToString("F0")% de réussite
+                                            </div>
+                                            <div style="width: 100%; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden;">
+                                                <div style="width: @summary.SuccessRate%; height: 100%; background: @rankColor; transition: width 0.3s ease;"></div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @* Questions Management *@
+                    <div class="section-header">
+                        <h3 style="margin: 0;">Questions</h3>
+                        <button class="modern-btn btn-primary" @onclick="AddNewQuestion">
+                            ➕ Ajouter une question
+                        </button>
+                    </div>
+
+                    @if (quizQuestions != null && quizQuestions.Any())
+                    {
+                        <div class="cards-grid">
+                            @foreach (var question in quizQuestions.OrderBy(q => q.QuestionNumber))
+                            {
+                                var stat = quizStatistics?.FirstOrDefault(s => s.QuestionNumber == question.QuestionNumber);
+                                var hasAnswers = stat != null && stat.TotalAnswers > 0;
+                                
+                                <div class="info-card" style="position: relative;">
+                                    <div class="info-card-header">
+                                        <div class="info-card-title">Question @question.QuestionNumber</div>
+                                        <div style="display: flex; gap: 8px; align-items: center;">
+                                            @if (hasAnswers)
+                                            {
+                                                <span class="info-card-badge badge-info">@stat.TotalAnswers réponse(s)</span>
+                                            }
+                                            <button class="icon-btn btn-primary" @onclick="() => EditQuestion(question)" title="Modifier">
+                                                ✏️
+                                            </button>
+                                            <button class="icon-btn btn-danger" @onclick="() => DeleteQuestion(question.Id)" title="Supprimer">
+                                                🗑️
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="padding: 15px;">
+                                        <p style="font-weight: 600; margin-bottom: 15px; color: #2c3e50;">@question.Question</p>
+                                        <div style="display: grid; gap: 8px;">
+                                            <div style="padding: 8px; background: @(question.CorrectAnswer == "A" ? "#d4edda" : "#f8f9fa"); border-radius: 5px; border-left: 3px solid @(question.CorrectAnswer == "A" ? "#28a745" : "#dee2e6");">
+                                                <strong>A.</strong> @question.OptionA
+                                            </div>
+                                            <div style="padding: 8px; background: @(question.CorrectAnswer == "B" ? "#d4edda" : "#f8f9fa"); border-radius: 5px; border-left: 3px solid @(question.CorrectAnswer == "B" ? "#28a745" : "#dee2e6");">
+                                                <strong>B.</strong> @question.OptionB
+                                            </div>
+                                            <div style="padding: 8px; background: @(question.CorrectAnswer == "C" ? "#d4edda" : "#f8f9fa"); border-radius: 5px; border-left: 3px solid @(question.CorrectAnswer == "C" ? "#28a745" : "#dee2e6");">
+                                                <strong>C.</strong> @question.OptionC
+                                            </div>
+                                            <div style="padding: 8px; background: @(question.CorrectAnswer == "D" ? "#d4edda" : "#f8f9fa"); border-radius: 5px; border-left: 3px solid @(question.CorrectAnswer == "D" ? "#28a745" : "#dee2e6");">
+                                                <strong>D.</strong> @question.OptionD
+                                            </div>
+                                        </div>
+                                        <div style="margin-top: 10px; padding: 10px; background: #e7f3ff; border-radius: 5px; text-align: center;">
+                                            <strong>Bonne réponse:</strong> <span style="color: #28a745; font-weight: bold;">@question.CorrectAnswer</span>
+                                        </div>
+                                        
+                                        @* Statistiques intégrées *@
+                                        @if (hasAnswers)
+                                        {
+                                            <div style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; border: 2px solid #e8ebef;">
+                                                <div style="font-weight: 600; color: #7172C5; margin-bottom: 10px; text-align: center;">
+                                                    📊 Statistiques (@stat.TotalAnswers réponse(s))
+                                                </div>
+                                                
+                                                <div style="display: grid; gap: 8px; margin-bottom: 15px;">
+                                                    @foreach (var option in new[] { "A", "B", "C", "D" })
+                                                    {
+                                                        var count = stat.AnswerCounts.ContainsKey(option) ? stat.AnswerCounts[option] : 0;
+                                                        var percentage = stat.TotalAnswers > 0 ? (count * 100.0 / stat.TotalAnswers) : 0;
+                                                        var isCorrect = option == stat.CorrectAnswer;
+                                                        
+                                                        <div style="padding: 8px; background: white; border-radius: 5px; border-left: 3px solid @(isCorrect ? "#28a745" : "#6c757d");">
+                                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                                                <strong>@option</strong>
+                                                                <span style="color: @(isCorrect ? "#28a745" : "#6c757d"); font-weight: 600;">
+                                                                    @count (@percentage.ToString("F0")%)
+                                                                </span>
+                                                            </div>
+                                                            <div style="width: 100%; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden;">
+                                                                <div style="width: @percentage%; height: 100%; background: @(isCorrect ? "#28a745" : "#6c757d"); transition: width 0.3s ease;"></div>
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </div>
+
+                                                @* Détails des réponses par famille *@
+                                                @if (stat.FamilyResponses != null && stat.FamilyResponses.Any())
+                                                {
+                                                    <details>
+                                                        <summary style="cursor: pointer; font-weight: 600; color: #495057; padding: 10px; background: white; border-radius: 8px; border: 2px solid #e8ebef; display: flex; justify-content: space-between; align-items: center;">
+                                                            <span>👥 Qui a répondu</span>
+                                                            <span style="background: #7172C5; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">
+                                                                @stat.FamilyResponses.Count
+                                                            </span>
+                                                        </summary>
+                                                        <div style="margin-top: 10px; max-height: 300px; overflow-y: auto;">
+                                                            @foreach (var response in stat.FamilyResponses.OrderBy(r => r.FamilyName))
+                                                            {
+                                                                <div style="padding: 12px; margin: 8px 0; background: white; border-left: 4px solid @(response.IsCorrect ? "#28a745" : "#dc3545"); border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                                                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                                                        <div style="flex: 1; min-width: 150px;">
+                                                                            <div style="font-weight: 700; color: #7172C5; margin-bottom: 4px; font-size: 0.9rem;">
+                                                                                👥 @response.FamilyName
+                                                                            </div>
+                                                                            <div style="font-size: 0.85rem; color: #666;">
+                                                                                🎭 @response.PlayerName
+                                                                            </div>
+                                                                        </div>
+                                                                        <div style="display: flex; align-items: center; gap: 10px;">
+                                                                            <div style="text-align: right;">
+                                                                                <div style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; background: @(response.IsCorrect ? "#d4edda" : "#f8d7da"); border-radius: 20px;">
+                                                                                    <strong style="color: @(response.IsCorrect ? "#28a745" : "#dc3545");">@response.SelectedAnswer</strong>
+                                                                                    <span style="font-size: 1.2rem;">@(response.IsCorrect ? "✓" : "✗")</span>
+                                                                                </div>
+                                                                                <div style="font-size: 0.75rem; color: #999; margin-top: 4px;">
+                                                                                    @response.AnsweredAt.ToLocalTime().ToString("HH:mm")
+                                                                                </div>
+                                                                            </div>
+                                                                            <button class="icon-btn btn-danger" 
+                                                                                    @onclick="() => DeleteIndividualAnswer(response.PlayerId, question.QuestionNumber, response.PlayerName)" 
+                                                                                    title="Supprimer cette réponse"
+                                                                                    style="padding: 6px 10px; font-size: 0.85rem;">
+                                                                                🗑️
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </details>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="text-align: center; padding: 60px 20px; color: #999;">
+                            <div style="font-size: 3rem; margin-bottom: 20px;">📝</div>
+                            <p style="font-size: 1.2rem;">Aucune question créée</p>
                         </div>
                     }
                 </div>
@@ -867,6 +1110,66 @@ else
     </div>
 }
 
+@if (showEditQuestionModal && editingQuestion != null)
+{
+    <div class="modal-overlay" @onclick="CloseEditQuestionModal">
+        <div class="modal-container" @onclick:stopPropagation="true" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>@(isCreatingQuestion ? "➕ Créer une question" : "✏️ Modifier la question")</h3>
+                <button class="modal-close-btn" @onclick="CloseEditQuestionModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Numéro de la question</label>
+                    <input type="number" @bind="editingQuestion.QuestionNumber" class="form-control" placeholder="Ex: 1" min="1" />
+                </div>
+                <div class="form-group">
+                    <label>Question</label>
+                    <textarea @bind="editingQuestion.Question" class="form-control" rows="3" placeholder="Entrez la question..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Option A</label>
+                    <input type="text" @bind="editingQuestion.OptionA" class="form-control" placeholder="Réponse A" />
+                </div>
+                <div class="form-group">
+                    <label>Option B</label>
+                    <input type="text" @bind="editingQuestion.OptionB" class="form-control" placeholder="Réponse B" />
+                </div>
+                <div class="form-group">
+                    <label>Option C</label>
+                    <input type="text" @bind="editingQuestion.OptionC" class="form-control" placeholder="Réponse C" />
+                </div>
+                <div class="form-group">
+                    <label>Option D</label>
+                    <input type="text" @bind="editingQuestion.OptionD" class="form-control" placeholder="Réponse D" />
+                </div>
+                <div class="form-group">
+                    <label>Bonne réponse</label>
+                    <select @bind="editingQuestion.CorrectAnswer" class="form-control">
+                        <option value="">-- Sélectionner la bonne réponse --</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                </div>
+                @if (!string.IsNullOrEmpty(questionValidationError))
+                {
+                    <div style="background: #fee; color: #c33; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <strong>⚠️</strong> @questionValidationError
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="modern-btn btn-outline" @onclick="CloseEditQuestionModal">Annuler</button>
+                <button class="modern-btn btn-primary" @onclick="SaveQuestion" disabled="@(!IsQuestionValid())">
+                    @(isCreatingQuestion ? "➕ Créer" : "💾 Enregistrer")
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private bool isAdmin = false;
     private string username = "";
@@ -894,6 +1197,17 @@ else
     private bool isCreatingFamily = false;
     private string familyValidationError = "";
 
+    // Quiz management
+    private QuizState? quizState;
+    private List<Quiz>? quizQuestions;
+    private List<QuizStatistics>? quizStatistics;
+    private Quiz? editingQuestion = null;
+    private bool showEditQuestionModal = false;
+    private bool isCreatingQuestion = false;
+    private string questionValidationError = "";
+    private int currentQuestionNumber = 0;
+    private List<FamilyQuizSummary>? familyQuizSummary;
+
     private HashSet<string> visibleCodes = new();
     private HashSet<string> visibleRoles = new();
     private HashSet<string> visibleWhistledowns = new();
@@ -915,6 +1229,25 @@ else
         players = await ApiService.GetAllPlayersAsync();
         penalties = await ApiService.GetPenaltiesAsync();
         voteResults = await ApiService.GetAllVoteResultsAsync();
+        
+        // Load quiz data
+        await LoadQuizData();
+    }
+
+    private async Task LoadQuizData()
+    {
+        try
+        {
+            quizState = await Http.GetFromJsonAsync<QuizState>("api/quiz/state");
+            currentQuestionNumber = quizState?.CurrentQuestionNumber ?? 0;
+            quizQuestions = await Http.GetFromJsonAsync<List<Quiz>>("api/quiz/questions");
+            quizStatistics = await Http.GetFromJsonAsync<List<QuizStatistics>>("api/quiz/all-statistics");
+            familyQuizSummary = await Http.GetFromJsonAsync<List<FamilyQuizSummary>>("api/quiz/family-summary");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur LoadQuizData: {ex.Message}");
+        }
     }
 
     private async Task ValidateLogin()
@@ -1433,5 +1766,220 @@ else
         
         familyValidationError = "";
         return true;
+    }
+
+    private async Task ToggleQuizEnabled(bool enabled)
+    {
+        if (quizState == null) return;
+        
+        quizState.IsEnabled = enabled;
+        await Http.PutAsJsonAsync("api/quiz/state", quizState);
+        await LoadQuizData();
+    }
+
+    private async Task UpdateCurrentQuestion()
+    {
+        if (quizState == null) return;
+        
+        quizState.CurrentQuestionNumber = currentQuestionNumber;
+        await Http.PutAsJsonAsync("api/quiz/state", quizState);
+        await LoadQuizData();
+    }
+
+    private void AddNewQuestion()
+    {
+        var nextNumber = (quizQuestions?.Any() == true) 
+            ? quizQuestions.Max(q => q.QuestionNumber) + 1 
+            : 1;
+        
+        editingQuestion = new Quiz
+        {
+            QuestionNumber = nextNumber,
+            Question = "",
+            OptionA = "",
+            OptionB = "",
+            OptionC = "",
+            OptionD = "",
+            CorrectAnswer = ""
+        };
+        isCreatingQuestion = true;
+        showEditQuestionModal = true;
+    }
+
+    private void EditQuestion(Quiz question)
+    {
+        editingQuestion = new Quiz
+        {
+            Id = question.Id,
+            QuestionNumber = question.QuestionNumber,
+            Question = question.Question,
+            OptionA = question.OptionA,
+            OptionB = question.OptionB,
+            OptionC = question.OptionC,
+            OptionD = question.OptionD,
+            CorrectAnswer = question.CorrectAnswer
+        };
+        isCreatingQuestion = false;
+        showEditQuestionModal = true;
+    }
+
+    private void CloseEditQuestionModal()
+    {
+        editingQuestion = null;
+        showEditQuestionModal = false;
+        isCreatingQuestion = false;
+        questionValidationError = "";
+    }
+
+    private async Task SaveQuestion()
+    {
+        if (editingQuestion == null || !IsQuestionValid()) return;
+
+        try
+        {
+            questionValidationError = "";
+            
+            if (isCreatingQuestion)
+            {
+                var response = await Http.PostAsJsonAsync("api/quiz/questions", editingQuestion);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    questionValidationError = $"Erreur: {errorContent}";
+                    await JSRuntime.InvokeVoidAsync("alert", $"Erreur lors de la création : {errorContent}");
+                    return;
+                }
+            }
+            else
+            {
+                var response = await Http.PutAsJsonAsync($"api/quiz/questions/{editingQuestion.Id}", editingQuestion);
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    questionValidationError = $"Erreur: {errorContent}";
+                    await JSRuntime.InvokeVoidAsync("alert", $"Erreur lors de la modification : {errorContent}");
+                    return;
+                }
+            }
+            
+            await LoadQuizData();
+            CloseEditQuestionModal();
+        }
+        catch (Exception ex)
+        {
+            questionValidationError = $"Exception: {ex.Message}";
+            await JSRuntime.InvokeVoidAsync("alert", $"Erreur lors de la sauvegarde : {ex.Message}");
+        }
+    }
+
+    private async Task DeleteQuestion(int id)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            "Êtes-vous sûr de vouloir supprimer cette question ?\n\nToutes les réponses associées seront également supprimées.");
+        
+        if (confirmed)
+        {
+            await Http.DeleteAsync($"api/quiz/questions/{id}");
+            await LoadQuizData();
+        }
+    }
+
+    private bool IsQuestionValid()
+    {
+        if (editingQuestion == null)
+        {
+            questionValidationError = "Aucune question en cours d'édition";
+            return false;
+        }
+        
+        if (editingQuestion.QuestionNumber < 1)
+        {
+            questionValidationError = "Le numéro de question doit être supérieur à 0";
+            return false;
+        }
+        
+        if (string.IsNullOrWhiteSpace(editingQuestion.Question))
+        {
+            questionValidationError = "La question est requise";
+            return false;
+        }
+        
+        if (string.IsNullOrWhiteSpace(editingQuestion.OptionA) || 
+            string.IsNullOrWhiteSpace(editingQuestion.OptionB) ||
+            string.IsNullOrWhiteSpace(editingQuestion.OptionC) || 
+            string.IsNullOrWhiteSpace(editingQuestion.OptionD))
+        {
+            questionValidationError = "Toutes les options (A, B, C, D) sont requises";
+            return false;
+        }
+        
+        if (string.IsNullOrWhiteSpace(editingQuestion.CorrectAnswer) || 
+            !new[] { "A", "B", "C", "D" }.Contains(editingQuestion.CorrectAnswer))
+        {
+            questionValidationError = "Vous devez sélectionner la bonne réponse (A, B, C ou D)";
+            return false;
+        }
+        
+        questionValidationError = "";
+        return true;
+    }
+
+    private async Task ResetAllQuizAnswers()
+    {
+        var totalAnswers = quizStatistics?.Sum(s => s.TotalAnswers) ?? 0;
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"⚠️ ATTENTION ⚠️\n\n" +
+            $"Vous êtes sur le point de supprimer TOUTES les réponses au quiz !\n\n" +
+            $"Total de réponses : {totalAnswers}\n\n" +
+            $"Cette action est IRRÉVERSIBLE.\n\n" +
+            $"Voulez-vous vraiment continuer ?");
+        
+        if (confirmed)
+        {
+            try
+            {
+                var response = await Http.DeleteAsync("api/quiz/answers/all");
+                if (response.IsSuccessStatusCode)
+                {
+                    await LoadQuizData();
+                    await JSRuntime.InvokeVoidAsync("alert", $"✅ Toutes les réponses ont été supprimées avec succès !\n\nLe quiz a été réinitialisé.");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "❌ Erreur lors de la réinitialisation du quiz.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"❌ Erreur : {ex.Message}");
+            }
+        }
+    }
+
+    private async Task DeleteIndividualAnswer(string playerId, int questionNumber, string playerName)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", 
+            $"Supprimer la réponse de '{playerName}' à la Question {questionNumber} ?\n\n" +
+            $"Cette action est irréversible.");
+        
+        if (confirmed)
+        {
+            try
+            {
+                var response = await Http.DeleteAsync($"api/quiz/answers/{playerId}/{questionNumber}");
+                if (response.IsSuccessStatusCode)
+                {
+                    await LoadQuizData();
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "❌ Erreur lors de la suppression de la réponse.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"❌ Erreur : {ex.Message}");
+            }
+        }
     }
 }

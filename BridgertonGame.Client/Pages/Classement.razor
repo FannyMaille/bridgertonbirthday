@@ -131,9 +131,6 @@
                             {
                                 <div class="character-name-text">@ladyWhistledown.Name</div>
                                 <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-                                    <div class="rank-badge-whistledown @GetWhistledownRankBadgeClass(rank)">
-                                        <span class="rank-number">@GetRankText(rank)</span>
-                                    </div>
                                     <div style="padding: 8px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; display: inline-block;">
                                         <strong>@points pts</strong>
                                     </div>
@@ -174,12 +171,6 @@
                                 @if (ladyWhistledown != null && !family.Revealed)
                                 {
                                     <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-                                        @if (points > 0 || articleCount > 0)
-                                        {
-                                            <div class="rank-badge-whistledown @GetWhistledownRankBadgeClass(rank)">
-                                                <span class="rank-number">@GetRankText(rank)</span>
-                                            </div>
-                                        }
                                         <div style="padding: 8px 15px; background: rgba(113, 114, 197, 0.3); color: #333; border-radius: 20px; display: inline-block;">
                                             <strong>@points pts</strong>
                                         </div>

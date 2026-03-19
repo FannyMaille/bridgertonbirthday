@@ -53,3 +53,16 @@ public class SetWhistledownRequest
 {
     public string? PlayerId { get; set; }
 }
+
+public class QuizAnswerRequest
+{
+    public string PlayerId { get; set; } = string.Empty;
+    public int QuestionNumber { get; set; }
+    public string SelectedAnswer { get; set; } = string.Empty; // A, B, C, or D
+}
+
+public class QuizAnswerResponse
+{
+    public bool IsCorrect { get; set; }
+    public string Message { get; set; } = string.Empty;
+}
