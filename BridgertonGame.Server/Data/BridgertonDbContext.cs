@@ -20,6 +20,9 @@ public class BridgertonDbContext : DbContext
     public DbSet<AdminCredential> AdminCredentials { get; set; }
     public DbSet<Vote> Votes { get; set; }
     public DbSet<VoteResult> VoteResults { get; set; }
+    public DbSet<QuizEntity> Quizzes { get; set; }
+    public DbSet<QuizAnswerEntity> QuizAnswers { get; set; }
+    public DbSet<QuizStateEntity> QuizStates { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,6 +38,19 @@ public class BridgertonDbContext : DbContext
         modelBuilder.Entity<AdminCredential>().HasKey(a => a.Id);
         modelBuilder.Entity<Vote>().HasKey(v => v.Id);
         modelBuilder.Entity<VoteResult>().HasKey(vr => vr.Id);
+        modelBuilder.Entity<QuizEntity>().HasKey(q => q.Id);
+        modelBuilder.Entity<QuizAnswerEntity>().HasKey(qa => qa.Id);
+        modelBuilder.Entity<QuizStateEntity>().HasKey(qs => qs.Id);
+
+        // Configure unique indexes for Quiz
+        modelBuilder.Entity<QuizEntity>()
+            .HasIndex(q => q.QuestionNumber)
+            .IsUnique();
+
+        // Configure composite index for QuizAnswers
+        modelBuilder.Entity<QuizAnswerEntity>()
+            .HasIndex(qa => new { qa.PlayerId, qa.QuestionNumber })
+            .IsUnique();
 
         // Seed initial data
         SeedData(modelBuilder);
