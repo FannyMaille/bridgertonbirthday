@@ -815,4 +815,43 @@ public class DatabaseGameDataService
         // Verify the password using BCrypt
         return BCrypt.Net.BCrypt.Verify(password, admin.Password);
     }
+
+    // Timer management methods
+    public async Task ResetPublicationTimerAsync(string familyId)
+    {
+        var cooldown = await _context.PublicationCooldowns.FindAsync(familyId);
+        if (cooldown != null)
+        {
+            _context.PublicationCooldowns.Remove(cooldown);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task SetPublicationTimerAsync(string familyId, int minutes)
+    {
+        var cooldown = await _context.PublicationCooldowns.FindAsync(familyId);
+        var newTime = DateTime.UtcNow.AddMinutes(-30 + minutes); // Calculate the last publication time based on desired cooldown
+
+        if (cooldown == null)
+        {
+            cooldown = new PublicationCooldown
+            {
+                FamilyId = familyId,
+                LastPublicationTime = newTime
+            };
+            _context.PublicationCooldowns.Add(cooldown);
+        }
+        else
+        {
+            cooldown.LastPublicationTime = newTime;
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<DateTime?> GetLastPublicationTimeAsync(string familyId)
+    {
+        var cooldown = await _context.PublicationCooldowns.FindAsync(familyId);
+        return cooldown?.LastPublicationTime;
+    }
 }
