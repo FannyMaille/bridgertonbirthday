@@ -717,6 +717,20 @@ public class DatabaseGameDataService
         return gameScores;
     }
 
+    public async Task<int> GetLadyWhistledownTeamPointsAsync()
+    {
+        // Calculer le total des points de publication de toutes les Lady Whistledown
+        var penalties = await _context.WhistledownPenalties.ToListAsync();
+        return penalties.Sum(p => p.Penalty);
+    }
+
+    public async Task<Dictionary<string, int>> GetLadyWhistledownIndividualPointsAsync()
+    {
+        // Retourner les points individuels de chaque Lady Whistledown
+        var penalties = await _context.WhistledownPenalties.ToListAsync();
+        return penalties.ToDictionary(p => p.FamilyId, p => p.Penalty);
+    }
+
     public async Task UpdateGameScoreAsync(string gameName, string familyId, int points)
     {
         var scoreEntity = await _context.GameScores

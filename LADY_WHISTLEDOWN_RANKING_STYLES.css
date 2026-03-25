@@ -1,0 +1,105 @@
+/* Styles pour l'équipe Lady Whistledown dans le classement */
+
+/* Carte de l'équipe Lady Whistledown */
+.lady-whistledown-team-card {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+    box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.lady-whistledown-team-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.lady-whistledown-team-card .ranking-card-inner {
+    position: relative;
+    z-index: 1;
+}
+
+/* Badge de rang pour l'équipe Lady Whistledown */
+.rank-badge-whistledown {
+    background: rgba(255, 255, 255, 0.95) !important;
+    color: #f5576c !important;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.lady-whistledown-team-card .family-label {
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.lady-whistledown-team-card .family-name-text {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Badge de points pour l'équipe Lady Whistledown */
+.points-badge-whistledown {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.lady-whistledown-team-card .points-value {
+    color: white !important;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.lady-whistledown-team-card .points-label {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Animation au survol */
+.lady-whistledown-team-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 35px rgba(240, 147, 251, 0.6) !important;
+}
+
+/* Effet spécial pour le rang 1 */
+.lady-whistledown-team-card.rank-first {
+    border: 3px solid rgba(255, 215, 0, 0.6);
+}
+
+.lady-whistledown-team-card.rank-first::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, 
+        rgba(255, 215, 0, 0.3) 0%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        rgba(255, 215, 0, 0.3) 100%);
+    z-index: -1;
+    border-radius: inherit;
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0%, 100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .lady-whistledown-team-card .family-name-text {
+        font-size: 1.4rem;
+    }
+}

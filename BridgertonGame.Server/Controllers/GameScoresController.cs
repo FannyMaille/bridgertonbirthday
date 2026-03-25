@@ -50,6 +50,20 @@ public class GameScoresController : ControllerBase
         return Ok(penalties);
     }
 
+    [HttpGet("lady-whistledown-team-points")]
+    public async Task<ActionResult<int>> GetLadyWhistledownTeamPoints()
+    {
+        var totalPoints = await _gameData.GetLadyWhistledownTeamPointsAsync();
+        return Ok(totalPoints);
+    }
+
+    [HttpGet("lady-whistledown-individual-points")]
+    public async Task<ActionResult<Dictionary<string, int>>> GetLadyWhistledownIndividualPoints()
+    {
+        var individualPoints = await _gameData.GetLadyWhistledownIndividualPointsAsync();
+        return Ok(individualPoints);
+    }
+
     [HttpPut("penalties/{familyId}")]
     public async Task<ActionResult> UpdatePenalty(string familyId, [FromBody] int penalty)
     {

@@ -19,28 +19,42 @@
         <!-- Section Classement Moderne -->
         <div class="modern-ranking-section">
             <div class="ranking-cards-container">
-                @foreach (var family in families.OrderBy(f => f.Rank))
+                @foreach (var entry in GetCompleteRanking())
                 {
-                    <div class="ranking-card @GetRankingCardClass(family.Rank)">
-                        @if (family.Rank == 1)
+                    <div class="ranking-card @GetRankingCardClass(entry.Rank) @(entry.IsLadyWhistledownTeam ? "lady-whistledown-team-card" : "")">
+                        @if (entry.Rank == 1)
                         {
                             <div class="crown-decoration">
                                 <img src="images/Crown.png" alt="Crown" />
                             </div>
                         }
                         <div class="ranking-card-inner">
-                            <div class="rank-badge">
-                                <span class="rank-number">@GetRankText(family.Rank)</span>
+                            <div class="rank-badge @(entry.IsLadyWhistledownTeam ? "rank-badge-whistledown" : "")">
+                                <span class="rank-number">@GetRankText(entry.Rank)</span>
                             </div>
                             <div class="family-info">
-                                <span class="family-label">Famille</span>
-                                <span class="family-name-text">@family.Name</span>
+                                @if (entry.IsLadyWhistledownTeam)
+                                {
+                                    <span class="family-label" style="color: #f093fb;">👥 Équipe</span>
+                                    <span class="family-name-text" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Lady Whistledown</span>
+                                }
+                                else
+                                {
+                                    <span class="family-label">Famille</span>
+                                    <span class="family-name-text">@entry.Name</span>
+                                }
                             </div>
-                            <div class="points-badge">
-                                <span class="points-value">@family.Points</span>
+                            <div class="points-badge @(entry.IsLadyWhistledownTeam ? "points-badge-whistledown" : "")">
+                                <span class="points-value">@entry.Points</span>
                                 <span class="points-label">pts</span>
                             </div>
                         </div>
+                        @if (entry.IsLadyWhistledownTeam)
+                        {
+                            <div style="text-align: center; margin-top: 10px; font-size: 0.85rem; opacity: 0.8; font-style: italic;">
+                                📰 Publications uniquement
+                            </div>
+                        }
                     </div>
                 }
             </div>
@@ -210,6 +224,7 @@
     private List<FamilyVoteResult>? voteResults;
     private bool showModal = false;
     private string selectedImage = "";
+    private int ladyWhistledownTeamPoints = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -219,6 +234,58 @@
         articles = await ApiService.GetAllArticlesAsync();
         penalties = await ApiService.GetPenaltiesAsync();
         voteResults = await ApiService.GetAllVoteResultsAsync();
+        
+        // Charger les points de l'équipe Lady Whistledown
+        ladyWhistledownTeamPoints = await ApiService.GetLadyWhistledownTeamPointsAsync();
+    }
+
+    private class RankingEntry
+    {
+        public string Name { get; set; } = string.Empty;
+        public int Points { get; set; }
+        public int Rank { get; set; }
+        public bool IsLadyWhistledownTeam { get; set; }
+        public Family? Family { get; set; }
+    }
+
+    private List<RankingEntry> GetCompleteRanking()
+    {
+        if (families == null) return new();
+
+        var entries = new List<RankingEntry>();
+
+        // Ajouter toutes les familles
+        foreach (var family in families)
+        {
+            entries.Add(new RankingEntry
+            {
+                Name = family.Name,
+                Points = family.Points,
+                IsLadyWhistledownTeam = false,
+                Family = family
+            });
+        }
+
+        // Ajouter l'équipe Lady Whistledown
+        entries.Add(new RankingEntry
+        {
+            Name = "Équipe Lady Whistledown",
+            Points = ladyWhistledownTeamPoints,
+            IsLadyWhistledownTeam = true
+        });
+
+        // Trier par points décroissants et assigner les rangs
+        var ranked = entries
+            .OrderByDescending(e => e.Points)
+            .ThenBy(e => e.Name)
+            .Select((entry, index) => 
+            {
+                entry.Rank = index + 1;
+                return entry;
+            })
+            .ToList();
+
+        return ranked;
     }
 
     private int GetPlayerPoints(string familyId)

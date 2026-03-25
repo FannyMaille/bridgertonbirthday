@@ -77,6 +77,23 @@ public class ApiService
         return await _httpClient.GetFromJsonAsync<Dictionary<string, int>>("api/gamescores/penalties") ?? new();
     }
 
+    public async Task<int> GetLadyWhistledownTeamPointsAsync()
+    {
+        try
+        {
+            return await _httpClient.GetFromJsonAsync<int>("api/gamescores/lady-whistledown-team-points");
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    public async Task<Dictionary<string, int>> GetLadyWhistledownIndividualPointsAsync()
+    {
+        return await _httpClient.GetFromJsonAsync<Dictionary<string, int>>("api/gamescores/lady-whistledown-individual-points") ?? new();
+    }
+
     public async Task<FamilyVoteResult?> GetVoteResultsAsync(string familyId)
     {
         return await _httpClient.GetFromJsonAsync<FamilyVoteResult>($"api/families/{familyId}/vote-results");
