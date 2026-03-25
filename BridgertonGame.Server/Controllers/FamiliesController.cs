@@ -44,10 +44,17 @@ public class FamiliesController : ControllerBase
         if (!family.VotingEnabled)
             return BadRequest(new { message = "Le vote n'est pas activé pour cette famille" });
 
-        // Save the vote
-        await _gameData.SaveVoteAsync(id, request.VoterId, request.PlayerId);
-        
-        return Ok(new { message = "Vote enregistré" });
+        try
+        {
+            // Save the vote (will throw if voter is Lady Whistledown)
+            await _gameData.SaveVoteAsync(id, request.VoterId, request.PlayerId);
+            
+            return Ok(new { message = "Vote enregistré" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPost("{id}/set-whistledown")]
@@ -174,4 +181,57 @@ public class FamiliesController : ControllerBase
 
         return Ok();
     }
+
+    [HttpDelete("{id}/timer")]
+    public async Task<ActionResult> ResetTimer(string id)
+    {
+        var family = await _gameData.GetFamilyByIdAsync(id);
+        if (family == null)
+            return NotFound();
+
+        await _gameData.ResetPublicationTimerAsync(id);
+        return Ok(new { message = "Timer réinitialisé" });
+    }
+
+    [HttpPost("{id}/timer/set")]
+    public async Task<ActionResult> SetTimer(string id, [FromBody] SetTimerRequest request)
+    {
+        var family = await _gameData.GetFamilyByIdAsync(id);
+        if (family == null)
+            return NotFound();
+
+        await _gameData.SetPublicationTimerAsync(id, request.Minutes);
+        return Ok(new { message = $"Timer défini à {request.Minutes} minutes" });
+    }
+
+    [HttpGet("{id}/timer/status")]
+    public async Task<ActionResult<TimerStatusDto>> GetTimerStatus(string id)
+    {
+        var family = await _gameData.GetFamilyByIdAsync(id);
+        if (family == null)
+            return NotFound();
+
+        var canPublish = await _gameData.CanPublishAsync(id);
+        var timeUntilNext = await _gameData.GetTimeUntilNextPublicationAsync(id);
+        var lastPublicationTime = await _gameData.GetLastPublicationTimeAsync(id);
+
+        return Ok(new TimerStatusDto
+        {
+            CanPublish = canPublish,
+            TimeUntilNext = timeUntilNext,
+            LastPublicationTime = lastPublicationTime
+        });
+    }
+}
+
+public class SetTimerRequest
+{
+    public int Minutes { get; set; }
+}
+
+public class TimerStatusDto
+{
+    public bool CanPublish { get; set; }
+    public TimeSpan? TimeUntilNext { get; set; }
+    public DateTime? LastPublicationTime { get; set; }
 }

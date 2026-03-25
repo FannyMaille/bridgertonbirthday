@@ -19,28 +19,42 @@
         <!-- Section Classement Moderne -->
         <div class="modern-ranking-section">
             <div class="ranking-cards-container">
-                @foreach (var family in families.OrderBy(f => f.Rank))
+                @foreach (var entry in GetCompleteRanking())
                 {
-                    <div class="ranking-card @GetRankingCardClass(family.Rank)">
-                        @if (family.Rank == 1)
+                    <div class="ranking-card @GetRankingCardClass(entry.Rank) @(entry.IsLadyWhistledownTeam ? "lady-whistledown-team-card" : "")">
+                        @if (entry.Rank == 1)
                         {
                             <div class="crown-decoration">
                                 <img src="images/Crown.png" alt="Crown" />
                             </div>
                         }
                         <div class="ranking-card-inner">
-                            <div class="rank-badge">
-                                <span class="rank-number">@GetRankText(family.Rank)</span>
+                            <div class="rank-badge @(entry.IsLadyWhistledownTeam ? "rank-badge-whistledown" : "")">
+                                <span class="rank-number">@GetRankText(entry.Rank)</span>
                             </div>
                             <div class="family-info">
-                                <span class="family-label">Famille</span>
-                                <span class="family-name-text">@family.Name</span>
+                                @if (entry.IsLadyWhistledownTeam)
+                                {
+                                    <span class="family-label" style="color: #f093fb;">👥 Équipe</span>
+                                    <span class="family-name-text" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Lady Whistledown</span>
+                                }
+                                else
+                                {
+                                    <span class="family-label">Famille</span>
+                                    <span class="family-name-text">@entry.Name</span>
+                                }
                             </div>
-                            <div class="points-badge">
-                                <span class="points-value">@family.Points</span>
+                            <div class="points-badge @(entry.IsLadyWhistledownTeam ? "points-badge-whistledown" : "")">
+                                <span class="points-value">@entry.Points</span>
                                 <span class="points-label">pts</span>
                             </div>
                         </div>
+                        @if (entry.IsLadyWhistledownTeam)
+                        {
+                            <div style="text-align: center; margin-top: 10px; font-size: 0.85rem; opacity: 0.8; font-style: italic;">
+                                📰 Publications uniquement
+                            </div>
+                        }
                     </div>
                 }
             </div>
@@ -115,6 +129,9 @@
                         </div>
                     }
                     <div class="character-card-inner">
+                        <div class="rank-badge-whistledown">
+                            <span class="rank-number">@GetRankText(rank)</span>
+                        </div>
                         <div class="character-image-wrapper-large">
                             @if (family.Revealed && ladyWhistledown != null)
                             {
@@ -159,8 +176,52 @@
                                                 <div style="font-size: 0.75rem; color: #721c24;">Incorrects</div>
                                             </div>
                                         </div>
-                                        <div style="text-align: center; padding: 8px; background: @(voteResult.TotalPointsAwarded >= 0 ? "#d4edda" : "#f8d7da"); border-radius: 5px; font-weight: bold; font-size: 0.9rem; color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24");">
-                                            @(voteResult.TotalPointsAwarded > 0 ? "+" : "")@voteResult.TotalPointsAwarded pts
+                                        
+                                        @* Détails de l'impact des votes *@
+                                        <div style="background: rgba(245, 247, 250, 0.8); border-radius: 8px; padding: 10px; margin-bottom: 8px;">
+                                            <div style="font-size: 0.85rem; color: #2c3e50; margin-bottom: 6px; font-weight: 500;">
+                                                Impact des votes :
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem;">
+                                                @if (voteResult.TotalCorrectVotes > 0)
+                                                {
+                                                    <div style="color: #28a745;">
+                                                        ✓ @voteResult.TotalCorrectVotes vote@(voteResult.TotalCorrectVotes > 1 ? "s" : "") correct@(voteResult.TotalCorrectVotes > 1 ? "s" : "") 
+                                                        → <strong>+@(voteResult.TotalCorrectVotes * 10)pts</strong> aux équipes
+                                                    </div>
+                                                }
+                                                @if (voteResult.TotalIncorrectVotes > 0)
+                                                {
+                                                    <div style="color: #dc3545;">
+                                                        ✗ @voteResult.TotalIncorrectVotes vote@(voteResult.TotalIncorrectVotes > 1 ? "s" : "") incorrect@(voteResult.TotalIncorrectVotes > 1 ? "s" : "") 
+                                                        → <strong>-@(voteResult.TotalIncorrectVotes * 10)pts</strong> aux équipes
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                        
+                                        @* Points totaux pour Lady Whistledown *@
+                                        <div style="text-align: center; padding: 10px; background: @(voteResult.TotalPointsAwarded >= 0 ? "rgba(245, 87, 108, 0.1)" : "rgba(102, 126, 234, 0.1)"); border: 2px solid @(voteResult.TotalPointsAwarded >= 0 ? "#f5576c" : "#667eea"); border-radius: 8px;">
+                                            <div style="font-size: 0.75rem; color: #2c3e50; margin-bottom: 4px; font-weight: 500;">
+                                                Points Lady Whistledown
+                                            </div>
+                                            <div style="font-weight: bold; font-size: 1.1rem; color: @(voteResult.TotalPointsAwarded >= 0 ? "#f5576c" : "#667eea");">
+                                                @(voteResult.TotalPointsAwarded > 0 ? "+" : "")@voteResult.TotalPointsAwarded pts
+                                            </div>
+                                            <div style="font-size: 0.7rem; color: #666; margin-top: 2px; font-style: italic;">
+                                                @if (voteResult.TotalPointsAwarded > 0)
+                                                {
+                                                    <span>Bénéfice des votes incorrects</span>
+                                                }
+                                                else if (voteResult.TotalPointsAwarded < 0)
+                                                {
+                                                    <span>Pénalité des votes corrects</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>Équilibre parfait</span>
+                                                }
+                                            </div>
                                         </div>
                                     </div>
                                 }
@@ -210,6 +271,7 @@
     private List<FamilyVoteResult>? voteResults;
     private bool showModal = false;
     private string selectedImage = "";
+    private int ladyWhistledownTeamPoints = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -219,6 +281,76 @@
         articles = await ApiService.GetAllArticlesAsync();
         penalties = await ApiService.GetPenaltiesAsync();
         voteResults = await ApiService.GetAllVoteResultsAsync();
+        
+        // Charger les points de l'équipe Lady Whistledown
+        ladyWhistledownTeamPoints = await ApiService.GetLadyWhistledownTeamPointsAsync();
+    }
+
+    private class RankingEntry
+    {
+        public string Name { get; set; } = string.Empty;
+        public int Points { get; set; }
+        public int Rank { get; set; }
+        public bool IsLadyWhistledownTeam { get; set; }
+        public Family? Family { get; set; }
+    }
+
+    private List<RankingEntry> GetCompleteRanking()
+    {
+        if (families == null) return new();
+
+        var entries = new List<RankingEntry>();
+
+        // Ajouter toutes les familles
+        foreach (var family in families)
+        {
+            entries.Add(new RankingEntry
+            {
+                Name = family.Name,
+                Points = family.Points,
+                IsLadyWhistledownTeam = false,
+                Family = family
+            });
+        }
+
+        // Ajouter l'équipe Lady Whistledown
+        entries.Add(new RankingEntry
+        {
+            Name = "Équipe Lady Whistledown",
+            Points = ladyWhistledownTeamPoints,
+            IsLadyWhistledownTeam = true
+        });
+
+        // Trier par points décroissants puis par nom
+        var sorted = entries
+            .OrderByDescending(e => e.Points)
+            .ThenBy(e => e.Name)
+            .ToList();
+
+        // Assigner les rangs en mode "dense" (1, 1, 2, 3...)
+        int currentRank = 1;
+        int? previousPoints = null;
+
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            if (previousPoints.HasValue && sorted[i].Points == previousPoints.Value)
+            {
+                // Même score que le précédent, même rang
+                sorted[i].Rank = currentRank;
+            }
+            else
+            {
+                // Nouveau score, incrémenter seulement de 1
+                if (i > 0)
+                {
+                    currentRank++;
+                }
+                sorted[i].Rank = currentRank;
+            }
+            previousPoints = sorted[i].Points;
+        }
+
+        return sorted;
     }
 
     private int GetPlayerPoints(string familyId)
@@ -230,13 +362,36 @@
     {
         if (families == null) return new();
 
-        // Classer par points décroissants
-        var ranked = families
+        // Trier par points décroissants puis par nom
+        var sorted = families
             .Select(f => new { Family = f, Points = GetPlayerPoints(f.Id) })
             .OrderByDescending(x => x.Points)
             .ThenBy(x => x.Family.Name)
-            .Select((x, index) => (Family: x.Family, Rank: index + 1))
             .ToList();
+
+        // Assigner les rangs en mode "dense" (1, 1, 2, 3...)
+        var ranked = new List<(Family Family, int Rank)>();
+        int currentRank = 1;
+        int? previousPoints = null;
+
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            if (previousPoints.HasValue && sorted[i].Points == previousPoints.Value)
+            {
+                // Même score que le précédent, même rang
+                ranked.Add((sorted[i].Family, currentRank));
+            }
+            else
+            {
+                // Nouveau score, incrémenter seulement de 1
+                if (i > 0)
+                {
+                    currentRank++;
+                }
+                ranked.Add((sorted[i].Family, currentRank));
+            }
+            previousPoints = sorted[i].Points;
+        }
 
         return ranked;
     }
