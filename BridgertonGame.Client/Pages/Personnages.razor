@@ -1,8 +1,6 @@
 @page "/personnages"
 @using BridgertonGame.Shared.Models
 @using BridgertonGame.Client.Shared
-@inject ApiService ApiService
-@inject IJSRuntime JSRuntime
 
 <PageTitle>Personnages - The Bridgerton Game</PageTitle>
 
@@ -82,33 +80,3 @@
         </div>
     }
 </main>
-
-@code {
-    private List<Family>? families;
-    private List<Player>? players;
-    private Player? hostPlayer;
-    private bool showModal = false;
-    private string selectedImage = "";
-
-    protected override async Task OnInitializedAsync()
-    {
-        families = await ApiService.GetAllFamiliesAsync();
-        players = await ApiService.GetAllPlayersAsync();
-        // Chercher la Maîtresse de maison (peut avoir différents noms de rôle)
-        hostPlayer = players?.FirstOrDefault(p => 
-            p.Role == "Maîtresse de maison" || 
-            p.Role == "Maîtresse de soirée");
-    }
-
-    private void ShowImageModal(string imageUrl)
-    {
-        selectedImage = imageUrl;
-        showModal = true;
-    }
-
-    private void CloseImageModal()
-    {
-        showModal = false;
-        selectedImage = "";
-    }
-}

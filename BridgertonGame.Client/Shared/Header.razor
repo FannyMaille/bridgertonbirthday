@@ -1,5 +1,3 @@
-@inject NotificationService NotificationService
-
 <header class="site-header">
     <div class="header-flowers">
         <img src="images/FleursBG.png" alt="Fleurs" />
@@ -85,17 +83,3 @@
         </nav>
     }
 </header>
-
-@code {
-    private bool isMenuOpen = false;
-
-    private void ToggleMenu()
-    {
-        isMenuOpen = !isMenuOpen;
-    }
-
-    private void CloseMenu()
-    {
-        isMenuOpen = false;
-    }
-}
