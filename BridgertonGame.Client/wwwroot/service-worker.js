@@ -1,11 +1,11 @@
 // Service Worker pour les notifications push
-const CACHE_NAME = 'bridgerton-v1';
+const CACHE_NAME = 'bridgerton-v2'; // Incrémenter la version pour forcer le rafraîchissement
 const urlsToCache = [
     '/',
-    '/css/app.css',
     '/images/LadyWithldown.png',
     '/images/FleursBG.png',
     '/manifest.json'
+    // Retirer les CSS du cache pour toujours les recharger
 ];
 
 // Installation du Service Worker
@@ -17,6 +17,7 @@ self.addEventListener('install', event => {
                 console.log('[Service Worker] Cache ouvert');
                 return cache.addAll(urlsToCache);
             })
+            .then(() => self.skipWaiting()) // Activer immédiatement
     );
 });
 
@@ -33,19 +34,38 @@ self.addEventListener('activate', event => {
                     }
                 })
             );
-        })
+        }).then(() => self.clients.claim()) // Prendre le contrôle immédiatement
     );
 });
 
 // Interception des requêtes réseau
 self.addEventListener('fetch', event => {
-    event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                // Cache first, puis réseau
-                return response || fetch(event.request);
-            })
-    );
+    const url = new URL(event.request.url);
+    
+    // Pour les fichiers CSS, toujours aller sur le réseau (network first)
+    if (url.pathname.endsWith('.css')) {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    // Mettre à jour le cache avec la nouvelle version
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => {
+                        cache.put(event.request, responseClone);
+                    });
+                    return response;
+                })
+                .catch(() => caches.match(event.request)) // Fallback sur le cache si réseau indisponible
+        );
+    } 
+    // Pour les autres fichiers, utiliser le cache first
+    else {
+        event.respondWith(
+            caches.match(event.request)
+                .then(response => {
+                    return response || fetch(event.request);
+                })
+        );
+    }
 });
 
 // Gestion des notifications push

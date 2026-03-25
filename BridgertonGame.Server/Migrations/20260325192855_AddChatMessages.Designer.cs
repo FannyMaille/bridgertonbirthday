@@ -4,6 +4,7 @@ using BridgertonGame.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BridgertonGame.Server.Migrations
 {
     [DbContext(typeof(BridgertonDbContext))]
-    partial class BridgertonDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325192855_AddChatMessages")]
+    partial class AddChatMessages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,7 +49,7 @@ namespace BridgertonGame.Server.Migrations
                         new
                         {
                             Id = 1,
-                            Password = "$2a$11$fd4VKSrWf1o25Zm7lAzeC.p7SX9Mj4vDPk5xahFCbcKdqPUuaSkgq",
+                            Password = "$2a$11$AxKjwiqhEjgx8ngYgwrxPupI0CLjBFPWnl5FY0FGsxulntnZ11AeO",
                             Username = "admin"
                         });
                 });
@@ -524,7 +527,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "La notation que la personne va écrire",
                             FamilyId = "hastings",
                             FamilyName = "Hastings",
-                            PublishedAt = new DateTime(2026, 3, 25, 9, 41, 29, 635, DateTimeKind.Utc).AddTicks(9676),
+                            PublishedAt = new DateTime(2026, 3, 25, 9, 28, 54, 767, DateTimeKind.Utc).AddTicks(2413),
                             Title = "Chers amis lecteurs,"
                         },
                         new
@@ -533,7 +536,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "Un événement des plus intéressants s'est déroulé lors du dernier bal...",
                             FamilyId = "bridgerton",
                             FamilyName = "Bridgerton",
-                            PublishedAt = new DateTime(2026, 3, 25, 11, 41, 29, 635, DateTimeKind.Utc).AddTicks(9676),
+                            PublishedAt = new DateTime(2026, 3, 25, 11, 28, 54, 767, DateTimeKind.Utc).AddTicks(2413),
                             Title = "Chers amis lecteurs,"
                         },
                         new
@@ -542,7 +545,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "Les rumeurs circulent à propos d'une certaine famille...",
                             FamilyId = "featherington",
                             FamilyName = "Featherington",
-                            PublishedAt = new DateTime(2026, 3, 25, 13, 41, 29, 635, DateTimeKind.Utc).AddTicks(9676),
+                            PublishedAt = new DateTime(2026, 3, 25, 13, 28, 54, 767, DateTimeKind.Utc).AddTicks(2413),
                             Title = "Chers amis lecteurs,"
                         },
                         new
@@ -551,7 +554,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "Les secrets de la haute société ne me sont pas étrangers...",
                             FamilyId = "hastings",
                             FamilyName = "Hastings",
-                            PublishedAt = new DateTime(2026, 3, 25, 15, 41, 29, 635, DateTimeKind.Utc).AddTicks(9676),
+                            PublishedAt = new DateTime(2026, 3, 25, 15, 28, 54, 767, DateTimeKind.Utc).AddTicks(2413),
                             Title = "Chers amis lecteurs,"
                         },
                         new
@@ -560,7 +563,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "Une nouvelle intrigue secoue les salons londoniens...",
                             FamilyId = "danbury",
                             FamilyName = "Danbury",
-                            PublishedAt = new DateTime(2026, 3, 25, 17, 41, 29, 635, DateTimeKind.Utc).AddTicks(9676),
+                            PublishedAt = new DateTime(2026, 3, 25, 17, 28, 54, 767, DateTimeKind.Utc).AddTicks(2413),
                             Title = "Chers amis lecteurs,"
                         });
                 });

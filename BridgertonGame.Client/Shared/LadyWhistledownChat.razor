@@ -1,0 +1,50 @@
+@using BridgertonGame.Shared.Models
+@using BridgertonGame.Client.Services
+
+<div class="chat-container">
+    <div class="chat-header">
+        <h3>💬 Salon Secret des Lady Whistledown</h3>
+        <p class="chat-subtitle">Échangez discrètement entre chroniqueurs</p>
+    </div>
+
+    <div class="chat-messages" @ref="messagesContainer">
+        @if (messages.Count == 0)
+        {
+            <div class="no-messages">
+                <p>Aucun message pour le moment...</p>
+                <p class="text-muted">Soyez la première à partager vos observations !</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var message in messages)
+            {
+                <div class="chat-message @(message.SenderId == currentPlayerId ? "own-message" : "")">
+                    <div class="message-header">
+                        <span class="message-sender">@message.SenderName</span>
+                        <span class="message-family">(@message.FamilyName)</span>
+                        <span class="message-time">@FormatTime(message.SentAt)</span>
+                    </div>
+                    <div class="message-content">@message.Content</div>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="chat-input-container">
+        <textarea 
+            class="chat-input" 
+            @bind="newMessage" 
+            @bind:event="oninput"
+            @onkeydown="HandleKeyPress"
+            placeholder="Écrivez votre message... (Max 300 caractères)"
+            maxlength="300"
+            rows="2"></textarea>
+        <div class="chat-footer">
+            <span class="char-counter">@(newMessage?.Length ?? 0)/300</span>
+            <button class="send-btn" @onclick="SendMessage" disabled="@(!CanSend)">
+                <span>📤 Envoyer</span>
+            </button>
+        </div>
+    </div>
+</div>

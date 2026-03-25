@@ -16,5 +16,6 @@ builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<NotificationService>();
 builder.Services.AddScoped<PushNotificationService>();
+builder.Services.AddScoped<ChatService>();
 
 await builder.Build().RunAsync();

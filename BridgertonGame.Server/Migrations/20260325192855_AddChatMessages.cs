@@ -7,11 +7,33 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BridgertonGame.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class AddQuizSystem : Migration
+    public partial class AddChatMessages : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "ChatMessages",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    SenderId = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SenderName = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    FamilyName = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Content = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SentAt = table.Column<DateTime>(type: "datetime(6)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ChatMessages", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.CreateTable(
                 name: "QuizAnswers",
                 columns: table => new
@@ -78,42 +100,42 @@ namespace BridgertonGame.Server.Migrations
                 keyColumn: "Id",
                 keyValue: 1,
                 column: "Password",
-                value: "$2a$11$.xWcpRppD8w3HclskFBxK.lsb3oPqKPXziJn/3yEpSG0pW65v.n2K");
+                value: "$2a$11$AxKjwiqhEjgx8ngYgwrxPupI0CLjBFPWnl5FY0FGsxulntnZ11AeO");
 
             migrationBuilder.UpdateData(
                 table: "Articles",
                 keyColumn: "Id",
                 keyValue: "1",
                 column: "PublishedAt",
-                value: new DateTime(2026, 3, 18, 5, 39, 25, 940, DateTimeKind.Utc).AddTicks(815));
+                value: new DateTime(2026, 3, 25, 9, 28, 54, 767, DateTimeKind.Utc).AddTicks(2413));
 
             migrationBuilder.UpdateData(
                 table: "Articles",
                 keyColumn: "Id",
                 keyValue: "2",
                 column: "PublishedAt",
-                value: new DateTime(2026, 3, 18, 7, 39, 25, 940, DateTimeKind.Utc).AddTicks(815));
+                value: new DateTime(2026, 3, 25, 11, 28, 54, 767, DateTimeKind.Utc).AddTicks(2413));
 
             migrationBuilder.UpdateData(
                 table: "Articles",
                 keyColumn: "Id",
                 keyValue: "3",
                 column: "PublishedAt",
-                value: new DateTime(2026, 3, 18, 9, 39, 25, 940, DateTimeKind.Utc).AddTicks(815));
+                value: new DateTime(2026, 3, 25, 13, 28, 54, 767, DateTimeKind.Utc).AddTicks(2413));
 
             migrationBuilder.UpdateData(
                 table: "Articles",
                 keyColumn: "Id",
                 keyValue: "4",
                 column: "PublishedAt",
-                value: new DateTime(2026, 3, 18, 11, 39, 25, 940, DateTimeKind.Utc).AddTicks(815));
+                value: new DateTime(2026, 3, 25, 15, 28, 54, 767, DateTimeKind.Utc).AddTicks(2413));
 
             migrationBuilder.UpdateData(
                 table: "Articles",
                 keyColumn: "Id",
                 keyValue: "5",
                 column: "PublishedAt",
-                value: new DateTime(2026, 3, 18, 13, 39, 25, 940, DateTimeKind.Utc).AddTicks(815));
+                value: new DateTime(2026, 3, 25, 17, 28, 54, 767, DateTimeKind.Utc).AddTicks(2413));
 
             migrationBuilder.CreateIndex(
                 name: "IX_QuizAnswers_PlayerId_QuestionNumber",
@@ -131,6 +153,9 @@ namespace BridgertonGame.Server.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ChatMessages");
+
             migrationBuilder.DropTable(
                 name: "QuizAnswers");
 

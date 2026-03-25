@@ -75,7 +75,27 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
+
+// Configuration du cache pour les fichiers statiques
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // En développement, désactiver le cache pour les fichiers CSS
+        if (app.Environment.IsDevelopment() && ctx.File.Name.EndsWith(".css"))
+        {
+            ctx.Context.Response.Headers.Append("Cache-Control", "no-cache, no-store, must-revalidate");
+            ctx.Context.Response.Headers.Append("Pragma", "no-cache");
+            ctx.Context.Response.Headers.Append("Expires", "0");
+        }
+        else if (!app.Environment.IsDevelopment())
+        {
+            // En production, utiliser un cache avec validation
+            const int durationInSeconds = 60 * 60 * 24 * 7; // 7 jours
+            ctx.Context.Response.Headers.Append("Cache-Control", $"public, max-age={durationInSeconds}");
+        }
+    }
+});
 
 app.UseCors("AllowBlazorClient");
 
@@ -85,6 +105,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<ChatHub>("/chatHub");
 app.MapFallbackToFile("index.html");
 
 app.Run();

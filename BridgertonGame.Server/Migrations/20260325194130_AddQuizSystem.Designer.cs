@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BridgertonGame.Server.Migrations
 {
     [DbContext(typeof(BridgertonDbContext))]
-    [Migration("20260318153926_AddQuizSystem")]
+    [Migration("20260325194130_AddQuizSystem")]
     partial class AddQuizSystem
     {
         /// <inheritdoc />
@@ -49,9 +49,41 @@ namespace BridgertonGame.Server.Migrations
                         new
                         {
                             Id = 1,
-                            Password = "$2a$11$.xWcpRppD8w3HclskFBxK.lsb3oPqKPXziJn/3yEpSG0pW65v.n2K",
+                            Password = "$2a$11$fd4VKSrWf1o25Zm7lAzeC.p7SX9Mj4vDPk5xahFCbcKdqPUuaSkgq",
                             Username = "admin"
                         });
+                });
+
+            modelBuilder.Entity("BridgertonGame.Server.Data.Entities.ChatMessage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("FamilyName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("SenderId")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("SenderName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ChatMessages");
                 });
 
             modelBuilder.Entity("BridgertonGame.Server.Data.Entities.GameScoreEntity", b =>
@@ -495,7 +527,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "La notation que la personne va écrire",
                             FamilyId = "hastings",
                             FamilyName = "Hastings",
-                            PublishedAt = new DateTime(2026, 3, 18, 5, 39, 25, 940, DateTimeKind.Utc).AddTicks(815),
+                            PublishedAt = new DateTime(2026, 3, 25, 9, 41, 29, 635, DateTimeKind.Utc).AddTicks(9676),
                             Title = "Chers amis lecteurs,"
                         },
                         new
@@ -504,7 +536,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "Un événement des plus intéressants s'est déroulé lors du dernier bal...",
                             FamilyId = "bridgerton",
                             FamilyName = "Bridgerton",
-                            PublishedAt = new DateTime(2026, 3, 18, 7, 39, 25, 940, DateTimeKind.Utc).AddTicks(815),
+                            PublishedAt = new DateTime(2026, 3, 25, 11, 41, 29, 635, DateTimeKind.Utc).AddTicks(9676),
                             Title = "Chers amis lecteurs,"
                         },
                         new
@@ -513,7 +545,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "Les rumeurs circulent à propos d'une certaine famille...",
                             FamilyId = "featherington",
                             FamilyName = "Featherington",
-                            PublishedAt = new DateTime(2026, 3, 18, 9, 39, 25, 940, DateTimeKind.Utc).AddTicks(815),
+                            PublishedAt = new DateTime(2026, 3, 25, 13, 41, 29, 635, DateTimeKind.Utc).AddTicks(9676),
                             Title = "Chers amis lecteurs,"
                         },
                         new
@@ -522,7 +554,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "Les secrets de la haute société ne me sont pas étrangers...",
                             FamilyId = "hastings",
                             FamilyName = "Hastings",
-                            PublishedAt = new DateTime(2026, 3, 18, 11, 39, 25, 940, DateTimeKind.Utc).AddTicks(815),
+                            PublishedAt = new DateTime(2026, 3, 25, 15, 41, 29, 635, DateTimeKind.Utc).AddTicks(9676),
                             Title = "Chers amis lecteurs,"
                         },
                         new
@@ -531,7 +563,7 @@ namespace BridgertonGame.Server.Migrations
                             Content = "Une nouvelle intrigue secoue les salons londoniens...",
                             FamilyId = "danbury",
                             FamilyName = "Danbury",
-                            PublishedAt = new DateTime(2026, 3, 18, 13, 39, 25, 940, DateTimeKind.Utc).AddTicks(815),
+                            PublishedAt = new DateTime(2026, 3, 25, 17, 41, 29, 635, DateTimeKind.Utc).AddTicks(9676),
                             Title = "Chers amis lecteurs,"
                         });
                 });
