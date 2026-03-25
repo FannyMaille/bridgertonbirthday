@@ -146,15 +146,29 @@
                 </div>
 
                 <!-- Voting Section -->
-                @if (currentFamily.VotingEnabled)
+                @if (currentFamily.VotingEnabled && !currentFamily.Revealed)
                 {
-                    <div class="modern-card voting-card">
+                    <div class="modern-card">
                         <div class="card-header">
                             <div class="header-icon">🗳️</div>
                             <h3>Vote pour Lady Whistledown</h3>
                         </div>
                         <div class="card-body">
-                            @if (hasVoted)
+                            @if (currentPlayer.IsLadyWhistledown)
+                            {
+                                <!-- Message pour les Lady Whistledown -->
+                                <div style="background: rgba(245, 87, 108, 0.1); border: 2px solid #f5576c; padding: 20px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 2.5rem; margin-bottom: 10px;">🤫</div>
+                                    <div style="font-size: 1.2rem; font-weight: bold; color: #f5576c; margin-bottom: 10px;">
+                                        Vous êtes Lady Whistledown !
+                                    </div>
+                                    <div style="font-size: 0.95rem; color: #666; line-height: 1.5;">
+                                        Les Lady Whistledown ne peuvent pas voter.<br/>
+                                        Vous connaissez déjà le secret de votre famille... 😉
+                                    </div>
+                                </div>
+                            }
+                            else if (hasVoted)
                             {
                                 <!-- Affichage du vote existant -->
                                 <div style="background: #e7f3ff; border-left: 4px solid #2196F3; padding: 20px; border-radius: 8px; text-align: center;">

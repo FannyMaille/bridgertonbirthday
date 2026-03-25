@@ -44,10 +44,17 @@ public class FamiliesController : ControllerBase
         if (!family.VotingEnabled)
             return BadRequest(new { message = "Le vote n'est pas activé pour cette famille" });
 
-        // Save the vote
-        await _gameData.SaveVoteAsync(id, request.VoterId, request.PlayerId);
-        
-        return Ok(new { message = "Vote enregistré" });
+        try
+        {
+            // Save the vote (will throw if voter is Lady Whistledown)
+            await _gameData.SaveVoteAsync(id, request.VoterId, request.PlayerId);
+            
+            return Ok(new { message = "Vote enregistré" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpPost("{id}/set-whistledown")]

@@ -255,22 +255,40 @@ public class DatabaseGameDataService
         int correctVotes = 0;
         int incorrectVotes = 0;
 
+        // Dictionnaire pour suivre les points par famille votante
+        var familyVotePoints = new Dictionary<string, int>();
+
         foreach (var vote in votes)
         {
-            if (vote.VotedForId == family.LadyWhistledownId)
+            var voter = await _context.Players.FindAsync(vote.VoterId);
+            if (voter == null || string.IsNullOrEmpty(voter.FamilyId))
+                continue;
+
+            bool isCorrect = vote.VotedForId == family.LadyWhistledownId;
+            
+            if (isCorrect)
             {
                 correctVotes++;
+                // Vote correct: +10 pts à la famille votante
+                if (!familyVotePoints.ContainsKey(voter.FamilyId))
+                    familyVotePoints[voter.FamilyId] = 0;
+                familyVotePoints[voter.FamilyId] += 10;
             }
             else
             {
                 incorrectVotes++;
+                // Vote incorrect: -10 pts à la famille votante
+                if (!familyVotePoints.ContainsKey(voter.FamilyId))
+                    familyVotePoints[voter.FamilyId] = 0;
+                familyVotePoints[voter.FamilyId] -= 10;
             }
         }
 
-        // Calculate net points: +10 for correct, -10 for incorrect
-        int pointsAwarded = (correctVotes * 10) - (incorrectVotes * 10);
+        // Calculate net points for the Lady Whistledown's family
+        // Votes corrects retirent des points, votes incorrects ajoutent des points
+        int ladyWhistledownPoints = (incorrectVotes * 10) - (correctVotes * 10);
 
-        // Create or update vote result
+        // Create or update vote result for display
         var existingResult = await _context.VoteResults
             .FirstOrDefaultAsync(vr => vr.FamilyId == familyId);
 
@@ -278,7 +296,7 @@ public class DatabaseGameDataService
         {
             existingResult.CorrectVotes = correctVotes;
             existingResult.IncorrectVotes = incorrectVotes;
-            existingResult.PointsAwarded = pointsAwarded;
+            existingResult.PointsAwarded = ladyWhistledownPoints;
             existingResult.RevealedAt = DateTime.UtcNow;
         }
         else
@@ -288,14 +306,57 @@ public class DatabaseGameDataService
                 FamilyId = familyId,
                 CorrectVotes = correctVotes,
                 IncorrectVotes = incorrectVotes,
-                PointsAwarded = pointsAwarded,
+                PointsAwarded = ladyWhistledownPoints,
                 RevealedAt = DateTime.UtcNow
             };
             _context.VoteResults.Add(voteResult);
         }
 
-        // Add points to family through game score
-        await CreateOrUpdateVoteGameScoreAsync(familyId, pointsAwarded);
+        // Ajouter/retirer les points aux pénalités de Lady Whistledown
+        var penaltyEntity = await _context.WhistledownPenalties.FindAsync(familyId);
+        if (penaltyEntity != null)
+        {
+            // Ajouter les points de vote (peuvent être négatifs si plus de votes corrects)
+            penaltyEntity.Penalty += ladyWhistledownPoints;
+            // S'assurer que les pénalités ne deviennent pas négatives
+            if (penaltyEntity.Penalty < 0)
+                penaltyEntity.Penalty = 0;
+        }
+        else if (ladyWhistledownPoints > 0)
+        {
+            // Créer une entrée de pénalité seulement si positive
+            var newPenalty = new WhistledownPenalty
+            {
+                FamilyId = familyId,
+                Penalty = ladyWhistledownPoints
+            };
+            _context.WhistledownPenalties.Add(newPenalty);
+        }
+
+        // Créer ou mettre à jour les scores de vote pour chaque famille votante
+        foreach (var kvp in familyVotePoints)
+        {
+            var voterFamilyId = kvp.Key;
+            var points = kvp.Value;
+
+            var scoreEntity = await _context.GameScores
+                .FirstOrDefaultAsync(g => g.GameName == "Votes Lady Whistledown" && g.FamilyId == voterFamilyId);
+
+            if (scoreEntity != null)
+            {
+                scoreEntity.Score += points; // Additionner aux points existants
+            }
+            else
+            {
+                var newScore = new GameScoreEntity
+                {
+                    GameName = "Votes Lady Whistledown",
+                    FamilyId = voterFamilyId,
+                    Score = points
+                };
+                _context.GameScores.Add(newScore);
+            }
+        }
     }
 
     private async Task RemoveVotePointsAsync(string familyId)
@@ -306,16 +367,30 @@ public class DatabaseGameDataService
         
         if (voteResult != null)
         {
+            // Retirer les points des pénalités Lady Whistledown
+            var penaltyEntity = await _context.WhistledownPenalties.FindAsync(familyId);
+            if (penaltyEntity != null)
+            {
+                penaltyEntity.Penalty -= voteResult.PointsAwarded;
+                
+                // Si les pénalités deviennent 0 ou négatives, supprimer l'entité
+                if (penaltyEntity.Penalty <= 0)
+                {
+                    _context.WhistledownPenalties.Remove(penaltyEntity);
+                }
+            }
+            
             _context.VoteResults.Remove(voteResult);
         }
 
-        // Remove vote game score
-        var voteScore = await _context.GameScores
-            .FirstOrDefaultAsync(gs => gs.GameName == "Votes Lady Whistledown" && gs.FamilyId == familyId);
+        // Supprimer tous les scores de vote pour toutes les familles
+        var voteScores = await _context.GameScores
+            .Where(gs => gs.GameName == "Votes Lady Whistledown")
+            .ToListAsync();
         
-        if (voteScore != null)
+        if (voteScores.Any())
         {
-            _context.GameScores.Remove(voteScore);
+            _context.GameScores.RemoveRange(voteScores);
         }
     }
 
@@ -347,6 +422,14 @@ public class DatabaseGameDataService
 
     public async Task SaveVoteAsync(string familyId, string voterId, string votedForId)
     {
+        // Vérifier que le votant n'est pas une Lady Whistledown
+        var voter = await _context.Players.FindAsync(voterId);
+        if (voter == null)
+            throw new InvalidOperationException("Votant introuvable");
+            
+        if (voter.IsLadyWhistledown)
+            throw new InvalidOperationException("Les Lady Whistledown ne peuvent pas voter");
+        
         // Check if user already voted
         var existingVote = await _context.Votes
             .FirstOrDefaultAsync(v => v.FamilyId == familyId && v.VoterId == voterId);
@@ -422,6 +505,8 @@ public class DatabaseGameDataService
                 VoterName = voter?.Name ?? "Inconnu",
                 VotedForName = votedFor?.Name ?? "Inconnu",
                 IsCorrect = isCorrect,
+                // Vote correct: +10 pour équipe votante, -10 pour Lady Whistledown
+                // Vote incorrect: -10 pour équipe votante, +10 pour Lady Whistledown
                 PointsAwarded = isCorrect ? 10 : -10
             };
         }).ToList();
@@ -437,6 +522,7 @@ public class DatabaseGameDataService
             Votes = voteDetails,
             TotalCorrectVotes = voteResult?.CorrectVotes ?? 0,
             TotalIncorrectVotes = voteResult?.IncorrectVotes ?? 0,
+            // Points pour la Lady Whistledown (négatifs si plus de votes corrects)
             TotalPointsAwarded = voteResult?.PointsAwarded ?? 0,
             IsRevealed = family.Revealed
         };
