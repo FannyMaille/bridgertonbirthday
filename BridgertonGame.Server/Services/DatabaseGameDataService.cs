@@ -954,4 +954,71 @@ public class DatabaseGameDataService
         var cooldown = await _context.PublicationCooldowns.FindAsync(familyId);
         return cooldown?.LastPublicationTime;
     }
+
+    // Chat methods
+    public async Task<List<Shared.Models.ChatMessage>> GetAllChatMessagesAsync()
+    {
+        var messages = await _context.ChatMessages
+            .OrderBy(m => m.SentAt)
+            .ToListAsync();
+
+        return messages.Select(m => new Shared.Models.ChatMessage
+        {
+            Id = m.Id,
+            SenderId = m.SenderId,
+            SenderName = m.SenderName,
+            FamilyName = m.FamilyName,
+            Content = m.Content,
+            SentAt = m.SentAt
+        }).ToList();
+    }
+
+    public async Task<Shared.Models.ChatMessage> SendChatMessageAsync(string senderId, string content)
+    {
+        var player = await _context.Players.FindAsync(senderId);
+        if (player == null || !player.IsLadyWhistledown)
+            throw new InvalidOperationException("Seules les Lady Whistledown peuvent envoyer des messages");
+
+        var family = await _context.Families.FindAsync(player.FamilyId);
+        var familyName = family?.Name ?? "Inconnu";
+
+        var message = new Data.Entities.ChatMessage
+        {
+            SenderId = senderId,
+            SenderName = player.Name,
+            FamilyName = familyName,
+            Content = content,
+            SentAt = DateTime.UtcNow
+        };
+
+        _context.ChatMessages.Add(message);
+        await _context.SaveChangesAsync();
+
+        return new Shared.Models.ChatMessage
+        {
+            Id = message.Id,
+            SenderId = message.SenderId,
+            SenderName = message.SenderName,
+            FamilyName = message.FamilyName,
+            Content = message.Content,
+            SentAt = message.SentAt
+        };
+    }
+
+    public async Task<bool> DeleteAllChatMessagesAsync()
+    {
+        var messages = await _context.ChatMessages.ToListAsync();
+        if (messages.Any())
+        {
+            _context.ChatMessages.RemoveRange(messages);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        return false;
+    }
+
+    public async Task<int> GetChatMessageCountAsync()
+    {
+        return await _context.ChatMessages.CountAsync();
+    }
 }

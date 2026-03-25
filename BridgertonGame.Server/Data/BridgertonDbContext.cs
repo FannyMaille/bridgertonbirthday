@@ -23,6 +23,7 @@ public class BridgertonDbContext : DbContext
     public DbSet<QuizEntity> Quizzes { get; set; }
     public DbSet<QuizAnswerEntity> QuizAnswers { get; set; }
     public DbSet<QuizStateEntity> QuizStates { get; set; }
+    public DbSet<Entities.ChatMessage> ChatMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,6 +42,7 @@ public class BridgertonDbContext : DbContext
         modelBuilder.Entity<QuizEntity>().HasKey(q => q.Id);
         modelBuilder.Entity<QuizAnswerEntity>().HasKey(qa => qa.Id);
         modelBuilder.Entity<QuizStateEntity>().HasKey(qs => qs.Id);
+        modelBuilder.Entity<Entities.ChatMessage>().HasKey(cm => cm.Id);
 
         // Configure unique indexes for Quiz
         modelBuilder.Entity<QuizEntity>()

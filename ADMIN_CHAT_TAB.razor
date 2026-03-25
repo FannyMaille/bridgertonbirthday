@@ -1,0 +1,252 @@
+<!-- ====================================================
+     ONGLET CHAT LADY WHISTLEDOWN - À AJOUTER DANS Admin.razor
+     ==================================================== -->
+
+<!-- 1. AJOUTER CE BOUTON DANS LA NAVIGATION DES ONGLETS -->
+<!-- Cherchez la section avec les autres boutons d'onglets et ajoutez celui-ci -->
+<button class="tab-btn @(currentTab == "chat" ? "active" : "")" 
+        @onclick='() => SetTab("chat")'>
+    💬 Chat LW
+</button>
+
+<!-- 2. AJOUTER CE CONTENU D'ONGLET AVEC LES AUTRES TAB-CONTENT -->
+<!-- Cherchez où les autres onglets (scores, articles, etc.) sont définis -->
+@if (currentTab == "chat")
+{
+    <div class="tab-content-section">
+        <div class="section-header">
+            <h2>💬 Salon Secret des Lady Whistledown</h2>
+            <p class="section-subtitle">
+                Consultez et modérez les conversations entre les chroniqueurs
+            </p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-card">
+            <div class="stat-item">
+                <span class="stat-label">Messages Total</span>
+                <span class="stat-value">@chatMessageCount</span>
+            </div>
+            <div class="stat-item">
+                <button class="modern-btn danger-btn" 
+                        @onclick="ClearAllChatMessages"
+                        disabled="@(chatMessageCount == 0)">
+                    🗑️ Supprimer tous les messages
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages List -->
+        @if (chatMessages == null)
+        {
+            <div class="loading-state">
+                <p>⏳ Chargement des messages...</p>
+            </div>
+        }
+        else if (chatMessages.Count == 0)
+        {
+            <div class="empty-state">
+                <div class="empty-icon">💭</div>
+                <h3>Aucun message</h3>
+                <p>Le chat est vide pour le moment.</p>
+            </div>
+        }
+        else
+        {
+            <div class="chat-messages-admin">
+                @foreach (var message in chatMessages)
+                {
+                    <div class="chat-message-admin">
+                        <div class="message-header-admin">
+                            <span class="message-sender-admin">
+                                👤 @message.SenderName
+                            </span>
+                            <span class="message-family-admin">
+                                🏰 @message.FamilyName
+                            </span>
+                            <span class="message-time-admin">
+                                🕐 @FormatChatTime(message.SentAt)
+                            </span>
+                        </div>
+                        <div class="message-content-admin">
+                            @message.Content
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+<!-- 3. STYLES CSS À AJOUTER DANS admin.css -->
+<!-- Copiez ces styles dans BridgertonGame.Client/wwwroot/css/admin.css -->
+
+<style>
+/* Chat Admin Styles */
+.chat-messages-admin {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.chat-message-admin {
+    background: white;
+    border-radius: 10px;
+    padding: 15px 20px;
+    border-left: 4px solid #7172C5;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chat-message-admin:hover {
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(113, 114, 197, 0.2);
+}
+
+.message-header-admin {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.message-sender-admin {
+    font-weight: bold;
+    color: #7172C5;
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1rem;
+}
+
+.message-family-admin {
+    color: #666;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.message-time-admin {
+    margin-left: auto;
+    color: #999;
+    font-size: 0.85rem;
+}
+
+.message-content-admin {
+    color: #2c3e50;
+    line-height: 1.6;
+    font-size: 1rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.stats-card {
+    background: linear-gradient(135deg, #7172C5 0%, #9394D5 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    font-family: 'Libre Baskerville', serif;
+}
+
+.danger-btn {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.danger-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+}
+
+.danger-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 15px;
+    margin-top: 20px;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    font-family: 'Libre Baskerville', serif;
+    font-size: 1.8rem;
+    color: #7172C5;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: #999;
+    font-size: 1.1rem;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 60px 20px;
+    font-size: 1.2rem;
+    color: #7172C5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .message-header-admin {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .message-time-admin {
+        margin-left: 0;
+    }
+
+    .chat-messages-admin {
+        max-height: 400px;
+    }
+}
+</style>

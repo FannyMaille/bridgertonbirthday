@@ -94,6 +94,10 @@ else
                     <span class="sidebar-menu-icon">📝</span>
                     <span>Quiz</span>
                 </button>
+                <button class="sidebar-menu-item @(currentTab == "chat" ? "active" : "")" @onclick='() => SetTab("chat")'>
+                    <span class="sidebar-menu-icon">💬</span>
+                    <span>Chat LW</span>
+                </button>
             </div>
 
             <div class="sidebar-footer">
@@ -710,7 +714,7 @@ else
                                                     <div style="font-size: 0.8rem; color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24"); margin-bottom: 2px;">
                                                         Résultat
                                                     </div>
-                                                    <div style="font-size: 1.2rem; font-weight: bold; color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24");">
+                                                    <div style="font-size: 1.2rem; font-weight: bold, color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24");">
                                                         ✅ @voteResult.TotalCorrectVotes  |  ❌ @voteResult.TotalIncorrectVotes
                                                     </div>
                                                     <div style="font-size: 0.9rem; font-weight: bold, color: @(voteResult.TotalPointsAwarded >= 0 ? "#155724" : "#721c24"); margin-top: 4px;">
@@ -1074,6 +1078,74 @@ else
                         <div style="text-align: center; padding: 60px 20px; color: #999;">
                             <div style="font-size: 3rem; margin-bottom: 20px;">📝</div>
                             <p style="font-size: 1.2rem;">Aucune question créée</p>
+                        </div>
+                    }
+                </div>
+            }
+            else if (currentTab == "chat")
+            {
+                <div class="dashboard-content">
+                    <div class="section-header">
+                        <h2 style="margin: 0;">💬 Salon Secret des Lady Whistledown</h2>
+                        <p style="color: #666; margin: 10px 0 0 0;">
+                            Consultez et modérez les conversations entre les chroniqueurs
+                        </p>
+                    </div>
+
+                    <!-- Statistics -->
+                    <div style="background: linear-gradient(135deg, #7172C5 0%, #9394D5 100%); color: white; padding: 25px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-bottom: 30px; flex-wrap: wrap;">
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <span style="font-size: 0.9rem; opacity: 0.9;">Messages Total</span>
+                            <span style="font-size: 2.5rem; font-weight: bold, font-family: 'Libre Baskerville', serif;">@chatMessageCount</span>
+                        </div>
+                        <button class="modern-btn btn-danger" 
+                                @onclick="ClearAllChatMessages"
+                                disabled="@(chatMessageCount == 0)"
+                                style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">
+                            🗑️ Supprimer tous les messages
+                        </button>
+                    </div>
+
+                    <!-- Messages List -->
+                    @if (chatMessages == null)
+                    {
+                        <div style="text-align: center; padding: 60px 20px; color: #7172C5;">
+                            <div style="font-size: 3rem; margin-bottom: 20px;">⏳</div>
+                            <p style="font-size: 1.2rem;">Chargement des messages...</p>
+                        </div>
+                    }
+                    else if (chatMessages.Count == 0)
+                    {
+                        <div style="text-align: center; padding: 60px 20px; color: #999;">
+                            <div style="font-size: 3rem; margin-bottom: 20px;">💭</div>
+                            <h3 style="font-family: 'Libre Baskerville', serif; font-size: 1.8rem; color: #7172C5; margin-bottom: 10px;">
+                                Aucun message
+                            </h3>
+                            <p style="font-size: 1.1rem;">Le chat est vide pour le moment.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="display: flex; flex-direction: column; gap: 15px; max-height: 600px; overflow-y: auto; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                            @foreach (var message in chatMessages)
+                            {
+                                <div style="background: white; border-radius: 10px; padding: 15px 20px; border-left: 4px solid #7172C5; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); transition: transform 0.2s ease, box-shadow 0.2s ease;">
+                                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 10px; flex-wrap: wrap;">
+                                        <span style="font-weight: bold; color: #7172C5; font-family: 'Libre Baskerville', serif; font-size: 1rem;">
+                                            👤 @message.SenderName
+                                        </span>
+                                        <span style="color: #666; font-style: italic; font-size: 0.9rem;">
+                                            🏰 @message.FamilyName
+                                        </span>
+                                        <span style="margin-left: auto; color: #999; font-size: 0.85rem;">
+                                            🕐 @FormatChatTime(message.SentAt)
+                                        </span>
+                                    </div>
+                                    <div style="color: #2c3e50; line-height: 1.6; font-size: 1rem; white-space: pre-wrap; word-wrap: break-word;">
+                                        @message.Content
+                                    </div>
+                                </div>
+                            }
                         </div>
                     }
                 </div>

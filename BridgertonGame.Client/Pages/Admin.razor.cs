@@ -62,6 +62,10 @@ namespace BridgertonGame.Client.Pages
         private string timerFamilyName = "";
         private int timerMinutes = 15;
 
+        // Chat management
+        private List<ChatMessage>? chatMessages;
+        private int chatMessageCount = 0;
+
         protected override async Task OnInitializedAsync()
         {
             isAdmin = await AuthService.IsAdminAuthenticatedAsync();
@@ -82,6 +86,9 @@ namespace BridgertonGame.Client.Pages
 
             // Load quiz data
             await LoadQuizData();
+            
+            // Load chat data
+            await LoadChatData();
         }
 
         private async Task LoadQuizData()
@@ -948,6 +955,70 @@ namespace BridgertonGame.Client.Pages
                 return $"{(int)timeSpan.TotalMinutes} min";
             else
                 return $"{timeSpan.Hours}h {timeSpan.Minutes}min";
+        }
+
+        // Chat management methods
+        private async Task LoadChatData()
+        {
+            try
+            {
+                chatMessages = await Http.GetFromJsonAsync<List<ChatMessage>>("api/chat");
+                chatMessageCount = await Http.GetFromJsonAsync<int>("api/chat/count");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erreur LoadChatData: {ex.Message}");
+            }
+        }
+
+        private async Task ClearAllChatMessages()
+        {
+            var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
+                $"⚠️ ATTENTION ⚠️\n\n" +
+                $"Vous êtes sur le point de supprimer TOUS les messages du chat !\n\n" +
+                $"Total actuel : {chatMessageCount} message(s)\n\n" +
+                $"Cette action est IRRÉVERSIBLE.\n\n" +
+                $"Voulez-vous vraiment continuer ?");
+
+            if (confirmed)
+            {
+                try
+                {
+                    var response = await Http.DeleteAsync("api/chat");
+                    if (response.IsSuccessStatusCode)
+                    {
+                        await LoadChatData();
+                        await JSRuntime.InvokeVoidAsync("alert", "✅ Tous les messages ont été supprimés avec succès !");
+                    }
+                    else
+                    {
+                        await JSRuntime.InvokeVoidAsync("alert", "❌ Erreur lors de la suppression des messages.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", $"❌ Erreur : {ex.Message}");
+                }
+            }
+        }
+
+        private string FormatChatTime(DateTime dateTime)
+        {
+            var localTime = dateTime.ToLocalTime();
+            var now = DateTime.Now;
+
+            if (localTime.Date == now.Date)
+            {
+                return localTime.ToString("HH:mm");
+            }
+            else if (localTime.Date == now.AddDays(-1).Date)
+            {
+                return $"Hier {localTime:HH:mm}";
+            }
+            else
+            {
+                return localTime.ToString("dd/MM HH:mm");
+            }
         }
     }
 
