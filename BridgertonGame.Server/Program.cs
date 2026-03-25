@@ -82,6 +82,13 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Configure WebSockets - MUST be before UseStaticFiles and UseRouting
+var webSocketOptions = new WebSocketOptions
+{
+    KeepAliveInterval = TimeSpan.FromMinutes(2)
+};
+app.UseWebSockets(webSocketOptions);
+
 app.UseBlazorFrameworkFiles();
 
 // Configuration du cache pour les fichiers statiques
