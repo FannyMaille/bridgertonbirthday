@@ -262,6 +262,40 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Lady Whistledown Section - Afficher les autres Lady Whistledown -->
+                    @if (otherLadyWhistledowns.Any())
+                    {
+                        <div class="section-divider">
+                            <div class="flower-line"><img src="images/Ornement.png" alt="" /></div>
+                            <h3>Les Autres<br/>Lady Whistledown</h3>
+                            <div class="flower-line"><img src="images/Ornement.png" alt="" /></div>
+                        </div>
+
+                        <div class="characters-grid-modern">
+                            @foreach (var whistledown in otherLadyWhistledowns)
+                            {
+                                var family = allFamilies.FirstOrDefault(f => f.Id == whistledown.FamilyId);
+                                <div class="character-card-modern">
+                                    <div class="character-card-inner">
+                                        <div class="character-image-wrapper-large">
+                                            <img src="@whistledown.ImageUrl" alt="@whistledown.Name" class="character-image-large" @onclick="() => ShowImageModal(whistledown.ImageUrl)" />
+                                        </div>
+                                        <div class="character-info-modern">
+                                            <div class="character-title-text">@whistledown.Title</div>
+                                            <div class="character-name-text">@whistledown.Name</div>
+                                            @if (family != null)
+                                            {
+                                                <div style="margin-top: 8px; padding: 6px 12px; background: rgba(113, 114, 197, 0.1); border-radius: 8px; font-size: 0.9rem; color: #7172C5;">
+                                                    Famille @family.Name
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
                 }
 
                 <!-- Logout Button -->
@@ -289,6 +323,8 @@
     private Player? currentPlayer;
     private Family? currentFamily;
     private List<Player> familyMembers = new();
+    private List<Player> otherLadyWhistledowns = new();
+    private List<Family> allFamilies = new();
     private string playerCode = "";
     private string errorMessage = "";
     private string successMessage = "";
@@ -403,6 +439,15 @@
             
             familyMembers = await ApiService.GetPlayersByFamilyAsync(currentPlayer.FamilyId);
             
+            // Charger toutes les familles (pour la section Lady Whistledown)
+            allFamilies = await ApiService.GetAllFamiliesAsync();
+            
+            // Si le joueur est Lady Whistledown, charger les autres Lady Whistledown
+            if (currentPlayer.IsLadyWhistledown)
+            {
+                await LoadOtherLadyWhistledowns();
+            }
+            
             // Vérifier si le joueur a déjà voté
             await CheckExistingVote();
             
@@ -421,6 +466,27 @@
         {
             errorMessage = $"Erreur de connexion au serveur: {ex.Message}";
             Console.WriteLine($"Erreur LoadPlayerData: {ex}");
+        }
+    }
+
+    private async Task LoadOtherLadyWhistledowns()
+    {
+        if (currentPlayer == null) return;
+
+        try
+        {
+            // Récupérer tous les joueurs
+            var allPlayers = await ApiService.GetAllPlayersAsync();
+            
+            // Filtrer pour obtenir uniquement les Lady Whistledown des autres familles
+            otherLadyWhistledowns = allPlayers
+                .Where(p => p.IsLadyWhistledown && p.FamilyId != currentPlayer.FamilyId)
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erreur LoadOtherLadyWhistledowns: {ex.Message}");
+            otherLadyWhistledowns = new();
         }
     }
 
