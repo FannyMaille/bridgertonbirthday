@@ -49,7 +49,7 @@ builder.Services.AddScoped<DatabaseGameDataService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient",
-        policy => policy.WithOrigins("https://localhost:7113", "http://localhost:5257", "https://localhost:5001", "http://localhost:5000")
+        policy => policy.WithOrigins("https://localhost:7113", "http://localhost:5257", "https://localhost:5001", "http://localhost:5000","https://bridgerton-birthday.fr")
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials());
@@ -61,7 +61,15 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<BridgertonDbContext>();
-    db.Database.Migrate();
+    try
+    {
+        db.Database.Migrate();
+    }
+    catch (MySqlConnector.MySqlException ex) when (ex.Message.Contains("already exists"))
+    {
+        Console.WriteLine($"Migration skipped: {ex.Message}");
+        // La table existe déjà, continuer normalement
+    }
 }
 
 // Configure the HTTP request pipeline.
