@@ -129,6 +129,9 @@
                         </div>
                     }
                     <div class="character-card-inner">
+                        <div class="rank-badge-whistledown">
+                            <span class="rank-number">@GetRankText(rank)</span>
+                        </div>
                         <div class="character-image-wrapper-large">
                             @if (family.Revealed && ladyWhistledown != null)
                             {
@@ -274,18 +277,36 @@
             IsLadyWhistledownTeam = true
         });
 
-        // Trier par points décroissants et assigner les rangs
-        var ranked = entries
+        // Trier par points décroissants puis par nom
+        var sorted = entries
             .OrderByDescending(e => e.Points)
             .ThenBy(e => e.Name)
-            .Select((entry, index) => 
-            {
-                entry.Rank = index + 1;
-                return entry;
-            })
             .ToList();
 
-        return ranked;
+        // Assigner les rangs en mode "dense" (1, 1, 2, 3...)
+        int currentRank = 1;
+        int? previousPoints = null;
+
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            if (previousPoints.HasValue && sorted[i].Points == previousPoints.Value)
+            {
+                // Même score que le précédent, même rang
+                sorted[i].Rank = currentRank;
+            }
+            else
+            {
+                // Nouveau score, incrémenter seulement de 1
+                if (i > 0)
+                {
+                    currentRank++;
+                }
+                sorted[i].Rank = currentRank;
+            }
+            previousPoints = sorted[i].Points;
+        }
+
+        return sorted;
     }
 
     private int GetPlayerPoints(string familyId)
@@ -297,13 +318,36 @@
     {
         if (families == null) return new();
 
-        // Classer par points décroissants
-        var ranked = families
+        // Trier par points décroissants puis par nom
+        var sorted = families
             .Select(f => new { Family = f, Points = GetPlayerPoints(f.Id) })
             .OrderByDescending(x => x.Points)
             .ThenBy(x => x.Family.Name)
-            .Select((x, index) => (Family: x.Family, Rank: index + 1))
             .ToList();
+
+        // Assigner les rangs en mode "dense" (1, 1, 2, 3...)
+        var ranked = new List<(Family Family, int Rank)>();
+        int currentRank = 1;
+        int? previousPoints = null;
+
+        for (int i = 0; i < sorted.Count; i++)
+        {
+            if (previousPoints.HasValue && sorted[i].Points == previousPoints.Value)
+            {
+                // Même score que le précédent, même rang
+                ranked.Add((sorted[i].Family, currentRank));
+            }
+            else
+            {
+                // Nouveau score, incrémenter seulement de 1
+                if (i > 0)
+                {
+                    currentRank++;
+                }
+                ranked.Add((sorted[i].Family, currentRank));
+            }
+            previousPoints = sorted[i].Points;
+        }
 
         return ranked;
     }
