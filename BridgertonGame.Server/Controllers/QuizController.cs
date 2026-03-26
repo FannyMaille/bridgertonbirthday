@@ -208,6 +208,9 @@ public class QuizController : ControllerBase
         _context.QuizAnswers.Add(answer);
         await _context.SaveChangesAsync();
 
+        // Notifier tous les clients (notamment l'admin) qu'une nouvelle réponse a été enregistrée
+        await _hubContext.Clients.All.SendAsync("QuizAnswerSubmitted", request.QuestionNumber, request.PlayerId);
+
         return Ok(new QuizAnswerResponse
         {
             IsCorrect = isCorrect,
@@ -395,6 +398,9 @@ public class QuizController : ControllerBase
 
         _context.QuizAnswers.Remove(answer);
         await _context.SaveChangesAsync();
+        
+        // Notifier tous les clients qu'une réponse a été supprimée
+        await _hubContext.Clients.All.SendAsync("QuizAnswerDeleted", questionNumber, playerId);
         
         return Ok(new { message = "Réponse supprimée" });
     }

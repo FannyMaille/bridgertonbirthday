@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
+using Microsoft.AspNetCore.SignalR.Client;
 using BridgertonGame.Client.Services;
 using BridgertonGame.Shared.Models;
 using BridgertonGame.Shared.DTOs;
@@ -8,12 +9,13 @@ using System.Net.Http.Json;
 
 namespace BridgertonGame.Client.Pages
 {
-    public partial class Admin
+    public partial class Admin : IAsyncDisposable
     {
         [Inject] private ApiService ApiService { get; set; } = default!;
         [Inject] private AuthService AuthService { get; set; } = default!;
         [Inject] private HttpClient Http { get; set; } = default!;
         [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+        [Inject] private NavigationManager Navigation { get; set; } = default!;
 
         private bool isAdmin = false;
         private string username = "";
@@ -66,12 +68,104 @@ namespace BridgertonGame.Client.Pages
         private List<ChatMessage>? chatMessages;
         private int chatMessageCount = 0;
 
+        // SignalR
+        private HubConnection? hubConnection;
+
         protected override async Task OnInitializedAsync()
         {
             isAdmin = await AuthService.IsAdminAuthenticatedAsync();
             if (isAdmin)
             {
                 await LoadData();
+                await InitializeSignalR();
+            }
+        }
+
+        private async Task InitializeSignalR()
+        {
+            try
+            {
+                var hubUrl = Navigation.ToAbsoluteUri("/notificationHub");
+                hubConnection = new HubConnectionBuilder()
+                    .WithUrl(hubUrl)
+                    .WithAutomaticReconnect()
+                    .Build();
+
+                // Écouter les nouvelles réponses au quiz
+                hubConnection.On<int, string>("QuizAnswerSubmitted", async (questionNumber, playerId) =>
+                {
+                    Console.WriteLine($"Quiz answer submitted: Question {questionNumber}, Player {playerId}");
+                    await OnQuizAnswerSubmitted(questionNumber);
+                });
+
+                // Écouter les suppressions de réponses
+                hubConnection.On<int, string>("QuizAnswerDeleted", async (questionNumber, playerId) =>
+                {
+                    Console.WriteLine($"Quiz answer deleted: Question {questionNumber}, Player {playerId}");
+                    await OnQuizAnswerDeleted(questionNumber);
+                });
+
+                // Écouter les réinitialisations du quiz
+                hubConnection.On("QuizReset", async () =>
+                {
+                    Console.WriteLine("Quiz reset");
+                    await OnQuizReset();
+                });
+
+                await hubConnection.StartAsync();
+                Console.WriteLine("SignalR connected for Admin page");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error connecting to SignalR: {ex.Message}");
+            }
+        }
+
+        private async Task OnQuizAnswerSubmitted(int questionNumber)
+        {
+            try
+            {
+                // Recharger uniquement les données du quiz
+                await LoadQuizData();
+                
+                // Mettre à jour l'interface
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error handling quiz answer submitted: {ex.Message}");
+            }
+        }
+
+        private async Task OnQuizAnswerDeleted(int questionNumber)
+        {
+            try
+            {
+                // Recharger uniquement les données du quiz
+                await LoadQuizData();
+                
+                // Mettre à jour l'interface
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error handling quiz answer deleted: {ex.Message}");
+            }
+        }
+
+        private async Task OnQuizReset()
+        {
+            try
+            {
+                // Recharger uniquement les données du quiz
+                await LoadQuizData();
+                
+                // Mettre à jour l'interface
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error handling quiz reset: {ex.Message}");
             }
         }
 
@@ -1018,6 +1112,14 @@ namespace BridgertonGame.Client.Pages
             else
             {
                 return localTime.ToString("dd/MM HH:mm");
+            }
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            if (hubConnection is not null)
+            {
+                await hubConnection.DisposeAsync();
             }
         }
     }
