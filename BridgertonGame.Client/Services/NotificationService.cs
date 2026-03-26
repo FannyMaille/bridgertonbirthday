@@ -18,8 +18,18 @@ public class NotificationService : IAsyncDisposable
     public NotificationService(NavigationManager navigationManager)
     {
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl(navigationManager.ToAbsoluteUri("/notificationHub"))
-            .WithAutomaticReconnect()
+            .WithUrl(navigationManager.ToAbsoluteUri("/notificationHub"), options =>
+            {
+                options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets | 
+                                   Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+            })
+            .WithAutomaticReconnect(new[] { 
+                TimeSpan.Zero, 
+                TimeSpan.FromSeconds(2), 
+                TimeSpan.FromSeconds(5), 
+                TimeSpan.FromSeconds(10),
+                TimeSpan.FromSeconds(30)
+            })
             .Build();
 
         _hubConnection.On<string, string, string, string?, string?>("ReceiveNotification", 
@@ -59,13 +69,40 @@ public class NotificationService : IAsyncDisposable
                 await OnArticleDeleted.Invoke(articleId);
             }
         });
+
+        // Log connection state changes
+        _hubConnection.Reconnecting += error =>
+        {
+            Console.WriteLine($"NotificationHub reconnecting: {error?.Message}");
+            return Task.CompletedTask;
+        };
+
+        _hubConnection.Reconnected += connectionId =>
+        {
+            Console.WriteLine($"NotificationHub reconnected: {connectionId}");
+            return Task.CompletedTask;
+        };
+
+        _hubConnection.Closed += error =>
+        {
+            Console.WriteLine($"NotificationHub closed: {error?.Message}");
+            return Task.CompletedTask;
+        };
     }
 
     public async Task StartAsync()
     {
         if (_hubConnection.State == HubConnectionState.Disconnected)
         {
-            await _hubConnection.StartAsync();
+            try
+            {
+                await _hubConnection.StartAsync();
+                Console.WriteLine("NotificationHub connected successfully");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"NotificationHub connection error: {ex.Message}");
+            }
         }
     }
 

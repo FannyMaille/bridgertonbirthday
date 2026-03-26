@@ -11,8 +11,14 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Add SignalR
-builder.Services.AddSignalR();
+// Add SignalR with enhanced configuration for production
+builder.Services.AddSignalR(options =>
+{
+    options.EnableDetailedErrors = true;
+    options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+    options.ClientTimeoutInterval = TimeSpan.FromSeconds(60);
+    options.HandshakeTimeout = TimeSpan.FromSeconds(30);
+});
 
 // Add Database - MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -85,8 +91,14 @@ app.UseHttpsRedirection();
 // Configure WebSockets - MUST be before UseStaticFiles and UseRouting
 var webSocketOptions = new WebSocketOptions
 {
-    KeepAliveInterval = TimeSpan.FromMinutes(2)
+    KeepAliveInterval = TimeSpan.FromSeconds(30)
 };
+
+// Allow all origins for WebSocket (important for reverse proxy compatibility)
+webSocketOptions.AllowedOrigins.Add("https://bridgerton-birthday.fr");
+webSocketOptions.AllowedOrigins.Add("http://localhost:5000");
+webSocketOptions.AllowedOrigins.Add("https://localhost:5001");
+
 app.UseWebSockets(webSocketOptions);
 
 app.UseBlazorFrameworkFiles();

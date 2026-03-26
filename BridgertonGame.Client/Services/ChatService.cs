@@ -23,8 +23,18 @@ public class ChatService : IAsyncDisposable
             return;
 
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl($"{_httpClient.BaseAddress}chatHub")
-            .WithAutomaticReconnect()
+            .WithUrl($"{_httpClient.BaseAddress}chatHub", options =>
+            {
+                options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets |
+                                   Microsoft.AspNetCore.Http.Connections.HttpTransportType.LongPolling;
+            })
+            .WithAutomaticReconnect(new[] {
+                TimeSpan.Zero,
+                TimeSpan.FromSeconds(2),
+                TimeSpan.FromSeconds(5),
+                TimeSpan.FromSeconds(10),
+                TimeSpan.FromSeconds(30)
+            })
             .Build();
 
         _hubConnection.On<ChatMessage>("ReceiveMessage", (message) =>
@@ -37,7 +47,34 @@ public class ChatService : IAsyncDisposable
             OnMessagesCleared?.Invoke();
         });
 
-        await _hubConnection.StartAsync();
+        // Log connection state changes
+        _hubConnection.Reconnecting += error =>
+        {
+            Console.WriteLine($"ChatHub reconnecting: {error?.Message}");
+            return Task.CompletedTask;
+        };
+
+        _hubConnection.Reconnected += connectionId =>
+        {
+            Console.WriteLine($"ChatHub reconnected: {connectionId}");
+            return Task.CompletedTask;
+        };
+
+        _hubConnection.Closed += error =>
+        {
+            Console.WriteLine($"ChatHub closed: {error?.Message}");
+            return Task.CompletedTask;
+        };
+
+        try
+        {
+            await _hubConnection.StartAsync();
+            Console.WriteLine("ChatHub connected successfully");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ChatHub connection error: {ex.Message}");
+        }
     }
 
     public async Task<List<ChatMessage>> GetMessagesAsync()
